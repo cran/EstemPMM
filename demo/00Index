@@ -1,0 +1,7 @@
+test_pmm                     Quick PMM2 sanity check (< 30 sec)
+pmm2_comparison_boxplots     Monte Carlo comparison with boxplots (2-3 min, RECOMMENDED)
+pmm_ts_examples              Time series: AR, MA, ARMA, ARIMA (2-3 min, INTERACTIVE, SIMPLIFIED)
+pmm2_real_data               PMM2 applied to Auto MPG dataset (1-2 min, SIMPLIFIED)
+pmm2_prediction              Prediction accuracy with train/test split (1-2 min, SIMPLIFIED)
+pmm2_simulation              Monte Carlo simulation studies (5-10 min, ADVANCED)
+pmm2_simMC_ts                Monte Carlo for time series models (5-10 min, ADVANCED)

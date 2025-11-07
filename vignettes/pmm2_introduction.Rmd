@@ -1,0 +1,332 @@
+---
+title: "Introduction to PMM2: Polynomial Maximization Method"
+author: "Serhii Zabolotnii"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to PMM2: Polynomial Maximization Method}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+## The Problem: When OLS Falls Short
+
+Ordinary Least Squares (OLS) is the workhorse of regression analysis, providing **Best Linear Unbiased Estimators (BLUE)** under the Gauss-Markov assumptions. However, when error distributions deviate from normality—particularly when they exhibit **skewness**—OLS estimates, while still unbiased, lose statistical efficiency. This means:
+
+- **Higher variance** in parameter estimates
+- **Wider confidence intervals**
+- **Reduced statistical power** for hypothesis tests
+
+### Practical Implications
+
+Consider scenarios where non-normal errors are common:
+
+- **Financial data**: Asset returns often have heavy tails and skewness
+- **Environmental measurements**: Contamination levels, precipitation
+- **Biomedical applications**: Biological markers with asymmetric distributions
+- **Engineering**: Measurement errors from physical processes
+
+In these contexts, relying solely on OLS can lead to **suboptimal inference**.
+
+---
+
+## The Solution: Polynomial Maximization Method (PMM2)
+
+The **Polynomial Maximization Method of order 2 (PMM2)** is a moment-based estimation technique that leverages higher-order moments of residuals to achieve:
+
+1. **Lower variance** estimates compared to OLS when errors are non-Gaussian
+2. **Robustness** to skewness and kurtosis in error distributions
+3. **Asymptotic efficiency** gains validated through Monte Carlo studies
+
+### Theoretical Foundation
+
+PMM2 works by constructing a system of polynomial equations based on central moments:
+
+$$
+Z_j(\beta) = \sum_{i=1}^{n} x_{ij} \left[ A \cdot \hat{y}_i^2 + B \cdot \hat{y}_i + C \right] = 0
+$$
+
+where:
+
+- $A = m_3$ (third central moment)
+- $B = m_4 - m_2^2 - 2m_3 y_i$ (involves fourth moment)
+- $C = m_3 y_i^2 - (m_4 - m_2^2) y_i - m_2 m_3$
+
+The algorithm iteratively solves this system using a gradient-based approach, starting from OLS estimates.
+
+**Reference:** Zabolotnii et al. (2018) - "Polynomial Estimation of Linear Regression Parameters for the Asymmetric PDF of Errors" (Springer, AUTOMATION 2018)
+
+---
+
+## Getting Started with EstemPMM
+
+Let's explore PMM2 with practical examples using the `EstemPMM` package.
+
+```{r load_package}
+library(EstemPMM)
+set.seed(123)
+```
+
+---
+
+## Example 1: Simple Linear Regression with Skewed Errors
+
+We'll simulate data where errors follow a **skewed distribution** (using $\chi^2$) to demonstrate PMM2's advantages.
+
+### Data Generation
+
+```{r simulate_skewed}
+# Sample size
+n <- 200
+
+# Generate predictor
+x <- rnorm(n, mean = 5, sd = 2)
+
+# True parameters
+beta_0 <- 10
+beta_1 <- 2.5
+
+# Generate highly skewed errors using chi-squared distribution
+# (chi-square with df=3 has skewness ~ 1.63)
+errors <- rchisq(n, df = 3) - 3  # Center to have mean ~ 0
+
+# Response variable
+y <- beta_0 + beta_1 * x + errors
+
+# Create data frame
+dat <- data.frame(y = y, x = x)
+```
+
+### Visualize Error Distribution
+
+```{r plot_errors, fig.width=7, fig.height=4}
+# Fit OLS to get residuals for visualization
+fit_ols_temp <- lm(y ~ x, data = dat)
+residuals_ols <- residuals(fit_ols_temp)
+
+# Plot histogram of residuals
+par(mfrow = c(1, 2))
+hist(residuals_ols, breaks = 30, main = "Residual Distribution",
+     xlab = "Residuals", col = "lightblue", border = "white")
+qqnorm(residuals_ols, main = "Q-Q Plot")
+qqline(residuals_ols, col = "red", lwd = 2)
+par(mfrow = c(1, 1))
+
+# Calculate skewness and kurtosis
+cat(sprintf("Skewness: %.3f\n", pmm_skewness(residuals_ols)))
+cat(sprintf("Excess Kurtosis: %.3f\n", pmm_kurtosis(residuals_ols) - 3))
+```
+
+The histogram and Q-Q plot clearly show **right skewness**, violating the normality assumption that underpins OLS optimality.
+
+---
+
+### Model Fitting: PMM2 vs OLS
+
+```{r fit_models}
+# Fit PMM2 model
+fit_pmm2 <- lm_pmm2(y ~ x, data = dat, verbose = FALSE)
+
+# Fit OLS model for comparison
+fit_ols <- lm(y ~ x, data = dat)
+
+# Display coefficients
+cat("=== OLS Estimates ===\n")
+print(coef(fit_ols))
+
+cat("\n=== PMM2 Estimates ===\n")
+print(coef(fit_pmm2))
+
+cat("\n=== True Values ===\n")
+cat("Intercept:", beta_0, "\n")
+cat("Slope:    ", beta_1, "\n")
+```
+
+---
+
+### Bootstrap Inference for Variance Comparison
+
+To rigorously compare estimator efficiency, we use **bootstrap inference**:
+
+```{r bootstrap_inference}
+# Perform bootstrap inference
+boot_results <- pmm2_inference(fit_pmm2, formula = y ~ x, data = dat,
+                               B = 500)
+
+# Display summary with confidence intervals
+summary(boot_results)
+```
+
+The bootstrap results provide:
+
+- **Standard errors** for PMM2 estimates
+- **95% confidence intervals** using percentile and bias-corrected methods
+- **Comparison with OLS** standard errors
+
+**Key Observation:** PMM2 standard errors are typically **10-30% smaller** than OLS when errors are skewed, indicating higher precision.
+
+---
+
+## Example 2: Multiple Regression
+
+PMM2 extends naturally to multiple predictors.
+
+```{r multiple_regression}
+# Generate multiple predictors
+n <- 250
+x1 <- rnorm(n, mean = 0, sd = 1)
+x2 <- runif(n, min = -2, max = 2)
+x3 <- rexp(n, rate = 0.5)
+
+# True model
+beta <- c(5, 1.2, -0.8, 2.0)  # Intercept, x1, x2, x3
+errors <- rt(n, df = 4)  # t-distribution with heavy tails
+
+y <- beta[1] + beta[2]*x1 + beta[3]*x2 + beta[4]*x3 + errors
+
+# Create data frame
+dat_multi <- data.frame(y = y, x1 = x1, x2 = x2, x3 = x3)
+
+# Fit models
+fit_pmm2_multi <- lm_pmm2(y ~ x1 + x2 + x3, data = dat_multi, verbose = FALSE)
+fit_ols_multi <- lm(y ~ x1 + x2 + x3, data = dat_multi)
+
+# Compare coefficients
+comparison <- data.frame(
+  Parameter = c("Intercept", "x1", "x2", "x3"),
+  True = beta,
+  OLS = coef(fit_ols_multi),
+  PMM2 = coef(fit_pmm2_multi)
+)
+
+print(comparison, row.names = FALSE)
+```
+
+---
+
+## Example 3: Polynomial Regression
+
+PMM2 handles polynomial terms seamlessly.
+
+```{r polynomial_regression}
+# Generate data with quadratic relationship
+n <- 200
+x <- seq(-3, 3, length.out = n)
+errors <- rchisq(n, df = 5) - 5
+
+# True quadratic model: y = 2 + 3x - 0.5x^2
+y <- 2 + 3*x - 0.5*x^2 + errors
+
+dat_poly <- data.frame(y = y, x = x)
+
+# Fit polynomial model
+fit_pmm2_poly <- lm_pmm2(y ~ x + I(x^2), data = dat_poly, verbose = FALSE)
+
+# Summary
+summary(fit_pmm2_poly, formula = y ~ x + I(x^2), data = dat_poly)
+```
+
+---
+
+## Diagnostic Plots
+
+PMM2 provides standard diagnostic methods:
+
+```{r diagnostics, fig.width=7, fig.height=6}
+# Generate diagnostic plots
+plot(fit_pmm2_multi)
+title("PMM2 Diagnostics")
+```
+
+The diagnostic plots include:
+
+1. **Residuals vs Fitted**: Check for non-linearity and heteroscedasticity
+2. **Q-Q Plot**: Assess normality of residuals
+3. **Scale-Location**: Check homoscedasticity assumption
+4. **Residuals vs Leverage**: Identify influential observations
+
+---
+
+## Comparing PMM2 with OLS: Monte Carlo Evidence
+
+Based on simulation studies documented in the package:
+
+| Model     | Sample Size | MSE(PMM2) / MSE(OLS) | Variance Reduction |
+|-----------|-------------|----------------------|--------------------|
+| MA(1)     | 200 / 1000  | 0.85 / 0.77          | 15-23%            |
+| MA(2)     | 200 / 1000  | 0.68 / 0.74          | 26-32%            |
+| ARMA(1,1) | 200 / 1000  | 0.70 / 0.55          | 30-45%            |
+| ARIMA(1,1,1) | 300 / 1000 | 0.76 / 0.48       | 24-52%            |
+
+These ratios **less than 1.0** confirm that PMM2 achieves **lower Mean Squared Error** compared to classical methods (CSS/OLS) when errors deviate from normality.
+
+---
+
+## When to Use PMM2
+
+**Use PMM2 when:**
+
+- Error distributions exhibit **skewness** or **heavy tails**
+- You need **more precise estimates** than OLS provides
+- Working with **financial, environmental, or biomedical data** where non-normality is common
+- Sample sizes are **moderate to large** (n ≥ 100 recommended)
+
+**Stick with OLS when:**
+
+- Errors are approximately **Gaussian**
+- Sample sizes are **very small** (n < 50)
+- Computational simplicity is paramount
+- You need unbiased estimates regardless of efficiency
+
+---
+
+## Practical Recommendations
+
+1. **Always fit OLS first** as a baseline comparison
+2. **Check residual diagnostics** to assess non-normality
+3. **Use bootstrap inference** (`pmm2_inference()`) for robust confidence intervals
+4. **Compare standard errors** between OLS and PMM2 to quantify efficiency gains
+5. **Validate results** with out-of-sample prediction when possible
+
+---
+
+## Next Steps
+
+To learn more about EstemPMM:
+
+- **Time Series Applications**: See `vignette("02-pmm2-time-series")` for AR, MA, ARMA, and ARIMA models
+- **Bootstrap Inference**: See `vignette("03-bootstrap-inference")` for detailed statistical inference procedures
+- **Theoretical Background**: Refer to Zabolotnii et al. (2018) cited in package documentation
+
+---
+
+## Summary
+
+The **PMM2 method** provides a powerful alternative to OLS when error distributions deviate from normality. By leveraging higher-order moments, PMM2 achieves:
+
+- **10-50% reduction** in parameter estimate variance
+- **Improved statistical power** for hypothesis testing
+- **Robust performance** across various non-Gaussian error distributions
+
+The `EstemPMM` package makes PMM2 accessible through an intuitive interface that mirrors standard R modeling functions like `lm()`.
+
+---
+
+## References
+
+1. Zabolotnii, S., Warsza, Z.L., Tkachenko, O. (2018). "Polynomial Estimation of Linear Regression Parameters for the Asymmetric PDF of Errors". In: Automation 2018. Advances in Intelligent Systems and Computing, vol 743. Springer, Cham. https://doi.org/10.1007/978-3-319-77179-3_75
+
+2. Package documentation: `?lm_pmm2`, `?pmm2_inference`, `?compare_with_ols`
+
+3. GitHub repository: https://github.com/SZabolotnii/EstemPMM
