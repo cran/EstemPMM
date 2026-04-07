@@ -310,3 +310,112 @@ legend("topleft",
 # mc_results <- pmm2_monte_carlo_compare(specs, methods = c("css", "pmm2"),
 #                                        n = 300, n_sim = 500)
 
+## ----sar_example--------------------------------------------------------------
+# Simulate SAR(1,1)_12 with seasonal period = 12
+n <- 300
+phi <- 0.6       # Non-seasonal AR coefficient
+Phi <- 0.4       # Seasonal AR coefficient (lag 12)
+s <- 12          # Seasonal period
+
+# Generate gamma-distributed innovations (right-skewed)
+innovations <- rgamma(n, shape = 2, rate = 2) - 1
+
+# Generate SAR series
+y <- numeric(n)
+for (t in (s+2):n) {
+  y[t] <- phi * y[t-1] + Phi * y[t-s] + innovations[t]
+}
+
+# Plot the series
+plot(y, type = "l", main = "SAR(1,1)_12 Process with Skewed Innovations",
+     ylab = "Value", xlab = "Time", col = "steelblue", lwd = 1.5)
+
+# Fit SAR model with PMM2
+fit_sar_pmm2 <- sar_pmm2(
+  y,
+  order = c(1, 1),
+  season = list(period = 12),
+  method = "pmm2"
+)
+
+# Compare with OLS
+fit_sar_ols <- sar_pmm2(
+  y,
+  order = c(1, 1),
+  season = list(period = 12),
+  method = "ols"
+)
+
+# Display results
+cat("True parameters: phi =", phi, ", Phi =", Phi, "\n\n")
+
+cat("OLS Estimates:\n")
+print(coef(fit_sar_ols))
+
+cat("\nPMM2 Estimates:\n")
+print(coef(fit_sar_pmm2))
+
+# Summary with diagnostics
+summary(fit_sar_pmm2)
+
+## ----sma_example--------------------------------------------------------------
+# Simulate SMA(1)_4 (quarterly seasonal pattern)
+n <- 200
+Theta <- 0.6     # Seasonal MA coefficient
+s <- 4           # Quarterly data
+
+# Generate exponentially distributed innovations
+innovations <- rexp(n, rate = 1) - 1
+
+# Generate SMA series
+y <- numeric(n)
+for (t in 1:s) {
+  y[t] <- innovations[t]
+}
+for (t in (s+1):n) {
+  y[t] <- innovations[t] + Theta * innovations[t-s]
+}
+
+# Plot the series
+plot(y, type = "l", main = "SMA(1)_4 Process",
+     ylab = "Value", xlab = "Time", col = "darkgreen", lwd = 1.5)
+
+# Fit SMA model with PMM2
+fit_sma_pmm2 <- sma_pmm2(
+  y,
+  order = 1,
+  season = list(period = 4),
+  method = "pmm2"
+)
+
+# Fit with CSS for comparison
+fit_sma_css <- sma_pmm2(
+  y,
+  order = 1,
+  season = list(period = 4),
+  method = "css"
+)
+
+# Display results
+cat("True parameter: Theta =", Theta, "\n\n")
+
+cat("CSS Estimate:\n")
+print(coef(fit_sma_css))
+
+cat("\nPMM2 Estimate:\n")
+print(coef(fit_sma_pmm2))
+
+cat("\nConvergence:", fit_sma_pmm2@convergence, "\n")
+cat("Iterations:", fit_sma_pmm2@iterations, "\n")
+
+## ----compare_seasonal, eval=FALSE---------------------------------------------
+# # Systematic comparison of SAR estimation methods
+# compare_sar_methods(y, order = c(1, 1), period = 12)
+# 
+# # Universal comparison for non-seasonal models
+# compare_ts_methods(
+#   y,
+#   model_type = "arima",
+#   order = c(1, 0, 1)
+# )
+

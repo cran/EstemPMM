@@ -8,6 +8,7 @@ arma_pmm2(
   x,
   order = c(1, 1),
   method = "pmm2",
+  pmm2_variant = c("unified_global", "unified_iterative", "linearized"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -28,6 +29,11 @@ arma_pmm2(
 - For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
+
+\item{pmm2_variant}{Character string specifying PMM2 implementation variant.
+Options: \code{"unified_global"} (default, one-step correction),
+\code{"unified_iterative"} (full Newton-Raphson), or
+\code{"linearized"} (specialized for MA/SMA models).}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 
@@ -51,5 +57,50 @@ coefficients, residuals, central moments, model specification, intercept,
 original series, and convergence diagnostics.
 }
 \description{
-Fit an ARMA model using PMM2 (wrapper)
+Estimates autoregressive moving-average model parameters using PMM2.
+ARMA models combine AR and MA components, capturing both direct past value
+dependencies and innovation structure. PMM2 leverages higher moments to
+improve parameter estimation accuracy.
+}
+\details{
+\strong{PMM2 Variants:}
+\itemize{
+\item \code{"unified_global"} (default): One-step correction from MLE/CSS estimates.
+Balances speed and accuracy for ARMA models. Recommended for most use cases.
+\item \code{"unified_iterative"}: Full Newton-Raphson optimization. Best for
+models with complex dynamics or strong non-Gaussian features.
+\item \code{"linearized"}: First-order approximation. Generally not recommended
+for ARMA; better suited for pure MA/SMA models.
+}
+
+\strong{Variant Selection Guidelines:}
+\itemize{
+\item For ARMA(p,q) with p,q <= 2: Use \code{"unified_global"} (default)
+\item For higher-order ARMA or ill-conditioned models: Try \code{"unified_iterative"}
+\item For quick exploration: Start with \code{"unified_global"}
+}
+
+\strong{ARMA Estimation Challenges:}
+ARMA models have more parameters than pure AR or MA models, making estimation
+more sensitive to initialization and numerical stability. PMM2 benefits from
+robust moment-based constraints that help regularize the parameter space.
+}
+\examples{
+\donttest{
+# Fit ARMA(2,1) model
+x <- arima.sim(n = 250, list(ar = c(0.7, -0.3), ma = 0.5))
+fit1 <- arma_pmm2(x, order = c(2, 1))
+coef(fit1)
+
+# Try iterative variant for better accuracy
+fit2 <- arma_pmm2(x, order = c(2, 1), pmm2_variant = "unified_iterative")
+
+# Higher-order ARMA
+x2 <- arima.sim(n = 300, list(ar = c(0.6, -0.2), ma = c(0.4, 0.3)))
+fit3 <- arma_pmm2(x2, order = c(2, 2), pmm2_variant = "unified_global")
+}
+  
+}
+\seealso{
+\code{\link{ar_pmm2}}, \code{\link{ma_pmm2}}, \code{\link{arima_pmm2}}
 }

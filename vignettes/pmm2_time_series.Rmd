@@ -1,10 +1,10 @@
 ---
-title: "PMM2 for Time Series: AR, MA, ARMA, and ARIMA Models"
+title: "PMM2 for Time Series: AR, MA, ARMA, ARIMA, and Seasonal Models"
 author: "Serhii Zabolotnii"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{PMM2 for Time Series: AR, MA, ARMA, and ARIMA Models}
+  %\VignetteIndexEntry{PMM2 for Time Series: AR, MA, ARMA, ARIMA, and Seasonal Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -34,6 +34,7 @@ The **PMM2 method** extends to time series models, providing **more efficient pa
 2. **Moving Average (MA)** models
 3. **ARMA** models
 4. **ARIMA** models with differencing
+5. **Seasonal models (SAR, SMA)** for data with seasonal patterns
 
 ---
 
@@ -487,6 +488,8 @@ Based on extensive Monte Carlo studies documented in the package:
 | MA(2)      | Mixed contamination    | 26-32%           | 200-1000    |
 | ARMA(1,1)  | Student-t (df=4)       | 30-45%           | 200-1000    |
 | ARIMA(1,1,1) | Exponential (shifted) | 24-52%          | 300-1000    |
+| SAR(1,1)_12 | Gamma (shape=2)       | 20-30%           | 200-500     |
+| SMA(1)_4   | Exponential            | 25-34%           | 200-500     |
 
 **Key Insight:** The more **non-Gaussian** the innovations, the **larger the efficiency gain** from PMM2.
 
@@ -523,14 +526,157 @@ mc_results <- pmm2_monte_carlo_compare(specs, methods = c("css", "pmm2"),
 
 ---
 
+## Part 8: Seasonal Models (SAR and SMA)
+
+Many real-world time series exhibit seasonal patterns - monthly data with yearly cycles, quarterly economic data, etc. The EstemPMM package provides PMM2 estimation for seasonal autoregressive (SAR) and seasonal moving average (SMA) models.
+
+### Seasonal Autoregressive (SAR) Models
+
+SAR models capture dependencies at seasonal lags. For example, SAR(1,1)_12 for monthly data relates the current value to both the previous month and the same month last year.
+
+```{r sar_example}
+# Simulate SAR(1,1)_12 with seasonal period = 12
+n <- 300
+phi <- 0.6       # Non-seasonal AR coefficient
+Phi <- 0.4       # Seasonal AR coefficient (lag 12)
+s <- 12          # Seasonal period
+
+# Generate gamma-distributed innovations (right-skewed)
+innovations <- rgamma(n, shape = 2, rate = 2) - 1
+
+# Generate SAR series
+y <- numeric(n)
+for (t in (s+2):n) {
+  y[t] <- phi * y[t-1] + Phi * y[t-s] + innovations[t]
+}
+
+# Plot the series
+plot(y, type = "l", main = "SAR(1,1)_12 Process with Skewed Innovations",
+     ylab = "Value", xlab = "Time", col = "steelblue", lwd = 1.5)
+
+# Fit SAR model with PMM2
+fit_sar_pmm2 <- sar_pmm2(
+  y,
+  order = c(1, 1),
+  season = list(period = 12),
+  method = "pmm2"
+)
+
+# Compare with OLS
+fit_sar_ols <- sar_pmm2(
+  y,
+  order = c(1, 1),
+  season = list(period = 12),
+  method = "ols"
+)
+
+# Display results
+cat("True parameters: phi =", phi, ", Phi =", Phi, "\n\n")
+
+cat("OLS Estimates:\n")
+print(coef(fit_sar_ols))
+
+cat("\nPMM2 Estimates:\n")
+print(coef(fit_sar_pmm2))
+
+# Summary with diagnostics
+summary(fit_sar_pmm2)
+```
+
+**Performance:** SAR models with PMM2 show **20-30% variance reduction** compared to OLS when innovations are asymmetric.
+
+### Seasonal Moving Average (SMA) Models
+
+SMA models use seasonal lags in the moving average component.
+
+```{r sma_example}
+# Simulate SMA(1)_4 (quarterly seasonal pattern)
+n <- 200
+Theta <- 0.6     # Seasonal MA coefficient
+s <- 4           # Quarterly data
+
+# Generate exponentially distributed innovations
+innovations <- rexp(n, rate = 1) - 1
+
+# Generate SMA series
+y <- numeric(n)
+for (t in 1:s) {
+  y[t] <- innovations[t]
+}
+for (t in (s+1):n) {
+  y[t] <- innovations[t] + Theta * innovations[t-s]
+}
+
+# Plot the series
+plot(y, type = "l", main = "SMA(1)_4 Process",
+     ylab = "Value", xlab = "Time", col = "darkgreen", lwd = 1.5)
+
+# Fit SMA model with PMM2
+fit_sma_pmm2 <- sma_pmm2(
+  y,
+  order = 1,
+  season = list(period = 4),
+  method = "pmm2"
+)
+
+# Fit with CSS for comparison
+fit_sma_css <- sma_pmm2(
+  y,
+  order = 1,
+  season = list(period = 4),
+  method = "css"
+)
+
+# Display results
+cat("True parameter: Theta =", Theta, "\n\n")
+
+cat("CSS Estimate:\n")
+print(coef(fit_sma_css))
+
+cat("\nPMM2 Estimate:\n")
+print(coef(fit_sma_pmm2))
+
+cat("\nConvergence:", fit_sma_pmm2@convergence, "\n")
+cat("Iterations:", fit_sma_pmm2@iterations, "\n")
+```
+
+**Performance:** Extensive Monte Carlo validation (500 replications) shows SMA models achieve up to **34.1% variance reduction** with PMM2, often exceeding theoretical predictions for certain parameter combinations.
+
+### Comparing Seasonal Methods
+
+```{r compare_seasonal, eval=FALSE}
+# Systematic comparison of SAR estimation methods
+compare_sar_methods(y, order = c(1, 1), period = 12)
+
+# Universal comparison for non-seasonal models
+compare_ts_methods(
+  y,
+  model_type = "arima",
+  order = c(1, 0, 1)
+)
+```
+
+### Practical Applications of Seasonal Models
+
+**Recommended for:**
+
+- **Monthly economic data** (sales, production, employment) with annual patterns
+- **Quarterly financial data** (GDP, earnings reports)
+- **Energy consumption** with daily, weekly, or seasonal cycles
+- **Climate data** (temperature, rainfall) with annual seasonality
+- **Retail sales** with holiday and seasonal effects
+
+---
+
 ## Conclusion
 
 The **PMM2 method for time series** provides:
 
-1. **Robust estimation** for AR, MA, ARMA, and ARIMA models
+1. **Robust estimation** for AR, MA, ARMA, ARIMA, SAR, and SMA models
 2. **10-50% variance reduction** when innovations deviate from normality
-3. **Seamless integration** with standard R workflows
-4. **Comprehensive diagnostics** and bootstrap inference
+3. **Seasonal pattern modeling** with SAR/SMA for data with periodic cycles
+4. **Seamless integration** with standard R workflows
+5. **Comprehensive diagnostics** and bootstrap inference
 
 For practitioners working with **real-world time series** exhibiting non-Gaussian behavior, PMM2 offers a principled approach to achieving **more precise parameter estimates** without sacrificing interpretability.
 

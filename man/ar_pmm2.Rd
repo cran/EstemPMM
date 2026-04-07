@@ -8,6 +8,7 @@ ar_pmm2(
   x,
   order = 1,
   method = "pmm2",
+  pmm2_variant = c("unified_global", "unified_iterative", "linearized"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -28,6 +29,11 @@ ar_pmm2(
 - For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
+
+\item{pmm2_variant}{Character string specifying PMM2 implementation variant.
+Options: \code{"unified_global"} (default, one-step correction),
+\code{"unified_iterative"} (full Newton-Raphson), or
+\code{"linearized"} (specialized for MA/SMA models).}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 
@@ -51,5 +57,54 @@ coefficients, residuals, central moment estimates (m2-m4), model order,
 intercept, original series, and convergence diagnostics.
 }
 \description{
-Fit an AR model using PMM2 (wrapper)
+Estimates autoregressive model parameters using the Pearson Moment Method (PMM2).
+PMM2 exploits third and fourth moment information to achieve more accurate
+parameter estimates than classical maximum likelihood, particularly for
+non-Gaussian innovations.
+}
+\details{
+\strong{PMM2 Variants:}
+\itemize{
+\item \code{"unified_global"} (default): One-step correction from MLE/CSS estimates.
+Fast and stable. Recommended for most AR models. Typical improvement: 3-5\\% MSE reduction.
+\item \code{"unified_iterative"}: Full Newton-Raphson optimization starting from
+classical estimates. More accurate but computationally intensive. Best for complex
+models with strong non-Gaussian features.
+\item \code{"linearized"}: Uses first-order Taylor expansion. Not recommended for
+AR models; designed for MA/SMA where Jacobian computation is complex.
+}
+
+\strong{Variant Selection Guidelines:}
+\itemize{
+\item For AR(p) models: Use \code{"unified_global"} (default)
+\item If convergence issues occur: Try \code{"unified_iterative"}
+\item For highly skewed/heavy-tailed innovations: Use \code{"unified_iterative"}
+}
+
+\strong{Computational Characteristics:}
+\itemize{
+\item \code{unified_global}: ~2x slower than MLE (single correction step)
+\item \code{unified_iterative}: 5-10x slower than MLE (iterative refinement)
+\item \code{linearized}: ~1.5x slower than MLE (approximation-based)
+}
+}
+\examples{
+\donttest{
+# Fit AR(2) model with default variant
+x <- arima.sim(n = 200, list(ar = c(0.7, -0.3)))
+fit1 <- ar_pmm2(x, order = 2)
+coef(fit1)
+
+# Compare variants
+fit2 <- ar_pmm2(x, order = 2, pmm2_variant = "unified_iterative")
+fit3 <- ar_pmm2(x, order = 2, pmm2_variant = "linearized")
+}
+  
+}
+\references{
+Monte Carlo validation (R=50, n=200): Unified Iterative showed 2.9\\% MSE
+improvement over MLE for AR(1) models. See NEWS.md (Version 0.2.0) for details.
+}
+\seealso{
+\code{\link{ma_pmm2}}, \code{\link{arma_pmm2}}, \code{\link{arima_pmm2}}
 }

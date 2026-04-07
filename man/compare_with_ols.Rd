@@ -19,3 +19,9 @@ List with OLS and PMM2 fit objects
 \description{
 Compare PMM2 with OLS
 }
+\examples{
+\donttest{
+result <- compare_with_ols(mpg ~ wt, data = mtcars)
+}
+
+}

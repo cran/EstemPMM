@@ -7,17 +7,44 @@
 \S4method{predict}{PMM2fit}(object, newdata = NULL, debug = FALSE, ...)
 }
 \arguments{
-\item{object}{PMM2fit object}
+\item{object}{PMM2fit object returned by \code{lm_pmm2()}}
 
-\item{newdata}{New data frame for prediction}
+\item{newdata}{Data frame containing the predictor variables with the same
+names as those used in the original model fit. Required parameter.}
 
-\item{debug}{Logical value, whether to output debug information}
+\item{debug}{Logical value indicating whether to output debug information
+about the prediction process. Default is FALSE.}
 
-\item{...}{additional arguments (not used)}
+\item{...}{Additional arguments (currently not used)}
 }
 \value{
-Vector of predictions
+Numeric vector of predicted values for the observations in \code{newdata}
 }
 \description{
-Prediction method for PMM2fit objects
+Computes predictions for new data using a fitted PMM2 model. The method
+extracts the formula from the fitted model, constructs a design matrix
+from the new data, and computes predictions via matrix multiplication.
+This approach works with arbitrary variable names and model specifications.
+}
+\details{
+The prediction is computed as \code{X \%*\% beta} where X is the design matrix
+constructed from \code{newdata} using the model formula, and beta are the
+estimated coefficients. The method automatically handles:
+\itemize{
+\item Models with intercepts and without
+\item Arbitrary variable names (not limited to "x1", "x2", etc.)
+\item Interaction terms and transformations specified in the formula
+\item Automatic coefficient reordering to match design matrix columns
+}
+}
+\examples{
+\donttest{
+# Fit model
+fit <- lm_pmm2(mpg ~ wt + hp, data = mtcars)
+
+# Predict on new data
+newdata <- data.frame(wt = c(2.5, 3.0), hp = c(100, 150))
+predictions <- predict(fit, newdata = newdata)
+}
+
 }

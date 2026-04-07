@@ -37,6 +37,34 @@ NULL
 #'
 #' \code{\link{ts_pmm2_inference}} - Bootstrap inference for time series models
 #'
+#' @section PMM3 (Symmetric Errors):
+#'
+#' \code{\link{lm_pmm3}} - Fit linear models using PMM3 (S=3, symmetric platykurtic errors)
+#'
+#' \code{\link{compute_moments_pmm3}} - Compute moments for PMM3
+#'
+#' \code{\link{pmm3_variance_factor}} - PMM3 theoretical variance reduction factor
+#'
+#' \code{\link{pmm_gamma6}} - Compute sixth-order cumulant coefficient
+#'
+#' \code{\link{test_symmetry}} - Test residual symmetry for PMM2 vs PMM3 choice
+#'
+#' @section PMM3 Time Series Functions:
+#'
+#' \code{\link{ts_pmm3}} - General function for fitting time series models using PMM3
+#'
+#' \code{\link{ar_pmm3}} - Fit AR models using PMM3
+#'
+#' \code{\link{ma_pmm3}} - Fit MA models using PMM3
+#'
+#' \code{\link{arma_pmm3}} - Fit ARMA models using PMM3
+#'
+#' \code{\link{arima_pmm3}} - Fit ARIMA models using PMM3
+#'
+#' @section Method Selection:
+#'
+#' \code{\link{pmm_dispatch}} - Automatic PMM method selection (OLS / PMM2 / PMM3)
+#'
 #' @section Utilities:
 #'
 #' \code{\link{pmm_skewness}} - Compute skewness

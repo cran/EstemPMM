@@ -5,3 +5,5 @@ pmm2_real_data               PMM2 applied to Auto MPG dataset (1-2 min, SIMPLIFI
 pmm2_prediction              Prediction accuracy with train/test split (1-2 min, SIMPLIFIED)
 pmm2_simulation              Monte Carlo simulation studies (5-10 min, ADVANCED)
 pmm2_simMC_ts                Monte Carlo for time series models (5-10 min, ADVANCED)
+sar_examples                 Seasonal AR PMM2 examples (interactive plots)
+sar_monte_carlo              Seasonal AR Monte Carlo comparison (gamma innovations)

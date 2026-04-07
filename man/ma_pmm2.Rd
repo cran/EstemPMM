@@ -8,6 +8,7 @@ ma_pmm2(
   x,
   order = 1,
   method = "pmm2",
+  pmm2_variant = c("unified_global", "unified_iterative", "linearized"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -28,6 +29,11 @@ ma_pmm2(
 - For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
+
+\item{pmm2_variant}{Character string specifying PMM2 implementation variant.
+Options: \code{"unified_global"} (default, one-step correction),
+\code{"unified_iterative"} (full Newton-Raphson), or
+\code{"linearized"} (specialized for MA/SMA models, \strong{recommended for MA}).}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 
@@ -51,5 +57,63 @@ coefficients, residual innovations, central moments, model order,
 intercept, original series, and convergence diagnostics.
 }
 \description{
-Fit an MA model using PMM2 (wrapper)
+Estimates moving-average model parameters using the Pearson Moment Method (PMM2).
+For MA models, PMM2 can achieve substantial improvements over MLE, particularly
+when innovations are non-Gaussian. Monte Carlo experiments showed up to 23\\% MSE
+reduction for MA(1) models.
+}
+\details{
+\strong{PMM2 Variants:}
+\itemize{
+\item \code{"unified_global"} (default): One-step correction from MLE/CSS estimates.
+Fast and reliable. Typical improvement: 15-23\\% MSE reduction for MA models.
+\item \code{"unified_iterative"}: Full Newton-Raphson optimization. Slower but
+can achieve better accuracy for complex MA models.
+\item \code{"linearized"}: Uses first-order Taylor expansion around MLE.
+\strong{Recommended for MA/SMA models} as it avoids complex Jacobian computation
+while maintaining accuracy. Fastest option for MA models.
+}
+
+\strong{Variant Selection Guidelines:}
+\itemize{
+\item For MA(q) models: Use \code{"linearized"} (fastest, MA-optimized)
+\item If you need maximum accuracy: Try \code{"unified_global"} (best MSE)
+\item For exploration: Compare all three variants
+}
+
+\strong{Computational Characteristics:}
+\itemize{
+\item \code{linearized}: ~1.5x slower than MLE (recommended)
+\item \code{unified_global}: ~2x slower than MLE (high accuracy)
+\item \code{unified_iterative}: 5-10x slower than MLE (iterative)
+}
+
+\strong{Why MA Models Benefit Most:}
+MA parameter estimation from MLE has known numerical difficulties due to
+non-identifiability and flat likelihood regions. PMM2 uses moment constraints
+that better resolve these issues, leading to larger improvements than for AR models.
+}
+\examples{
+\donttest{
+# Fit MA(1) model with linearized variant (recommended)
+x <- arima.sim(n = 200, list(ma = 0.6))
+fit1 <- ma_pmm2(x, order = 1, pmm2_variant = "linearized")
+coef(fit1)
+
+# Compare with unified_global (best accuracy)
+fit2 <- ma_pmm2(x, order = 1, pmm2_variant = "unified_global")
+
+# Higher-order MA
+x2 <- arima.sim(n = 300, list(ma = c(0.7, -0.4, 0.2)))
+fit3 <- ma_pmm2(x2, order = 3, pmm2_variant = "linearized")
+}
+  
+}
+\references{
+Monte Carlo validation (R=50, n=200): Unified Global showed 23.0\\% MSE
+improvement over MLE for MA(1) models - the largest improvement among all
+model types. See NEWS.md (Version 0.2.0) for full comparison.
+}
+\seealso{
+\code{\link{ar_pmm2}}, \code{\link{arma_pmm2}}, \code{\link{sma_pmm2}}
 }

@@ -1,0 +1,644 @@
+---
+title: "PMM3 for Time Series: AR, MA, ARMA, and ARIMA Models"
+author: "Serhii Zabolotnii"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{PMM3 for Time Series: AR, MA, ARMA, and ARIMA Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+## Introduction
+
+Classical time series estimation methods (CSS, MLE) assume Gaussian innovations.
+The **PMM2** method addresses **asymmetric** non-Gaussian innovations, but many
+real-world time series exhibit **symmetric platykurtic** errors — lighter tails
+than the normal distribution. Examples include:
+
+- **Bounded measurement errors** (sensor readings within a fixed range)
+- **Uniformly distributed shocks** (e.g., rounding errors)
+- **Truncated normal processes** (censored observations)
+- **Beta-symmetric disturbances** (bounded economic indicators)
+
+The **PMM3 method** (S=3) extends the Polynomial Maximization Method to these
+cases, using a cubic stochastic polynomial and Newton-Raphson solver based on
+the score equation $Z_{1\nu} = \varepsilon_\nu(\kappa - \varepsilon_\nu^2)$.
+
+This vignette demonstrates PMM3 for time series models:
+
+1. **AR** — Autoregressive models
+2. **MA** — Moving Average models
+3. **ARMA** — Combined AR + MA models
+4. **ARIMA** — Models with differencing for non-stationary series
+5. **Real-data examples** using datasets included in the package
+6. **Comparison** with MLE and PMM2
+
+### When PMM3 vs PMM2 vs OLS?
+
+| Innovation property              | Recommended method |
+|----------------------------------|--------------------|
+| Skewed ($|\gamma_3| > 0.3$)      | PMM2 (`ar_pmm2`, `ma_pmm2`, ...) |
+| Symmetric, platykurtic ($\gamma_4 < -0.7$) | **PMM3** (`ar_pmm3`, `ma_pmm3`, ...) |
+| Near-Gaussian                     | MLE / CSS          |
+
+Use `pmm_dispatch()` on residuals from a classical fit to automate this choice.
+
+---
+
+## Setup
+
+```{r load_package}
+library(EstemPMM)
+set.seed(42)
+```
+
+---
+
+## Part 1: AR Models with PMM3
+
+### AR(1) with Uniform Innovations
+
+Uniform innovations are the canonical platykurtic case:
+$\gamma_4 \approx -1.2$, symmetric, bounded.
+
+```{r ar1_simulation}
+n <- 300
+phi_true <- 0.7
+
+# Uniform innovations: symmetric, platykurtic (gamma4 ≈ -1.2)
+innov <- runif(n, -sqrt(3), sqrt(3))  # variance = 1
+
+# Generate AR(1) series
+ar_data <- arima.sim(n = n, list(ar = phi_true), innov = innov)
+
+# Plot
+plot(ar_data, main = "AR(1) Process with Uniform Innovations",
+     ylab = "Value", col = "steelblue", lwd = 1.2)
+```
+
+### Fit AR(1): PMM3 vs MLE
+
+```{r ar1_fit}
+# PMM3 fit
+fit_pmm3_ar1 <- ar_pmm3(ar_data, order = 1, include.mean = FALSE)
+
+# MLE fit (classical)
+fit_mle_ar1 <- arima(ar_data, order = c(1, 0, 0), include.mean = FALSE)
+
+# Compare
+cat("True AR(1) coefficient:", phi_true, "\n")
+cat("MLE estimate:          ", coef(fit_mle_ar1)["ar1"], "\n")
+cat("PMM3 estimate:         ", coef(fit_pmm3_ar1)["ar1"], "\n")
+
+# PMM3 diagnostics
+summary(fit_pmm3_ar1)
+```
+
+The `g3` value in the summary shows the theoretical variance reduction factor.
+For uniform innovations, $g_3 \approx 0.64$, meaning PMM3 achieves about 36%
+variance reduction over OLS.
+
+### AR(2) Model
+
+```{r ar2_example}
+phi_true <- c(0.5, -0.3)
+
+# Beta-symmetric innovations: symmetric, platykurtic
+innov2 <- (rbeta(400, 2, 2) - 0.5) * sqrt(12 * 2)  # scaled for var ≈ 1
+ar2_data <- arima.sim(n = 400, list(ar = phi_true), innov = innov2)
+
+fit_pmm3_ar2 <- ar_pmm3(ar2_data, order = 2, include.mean = FALSE)
+fit_mle_ar2  <- arima(ar2_data, order = c(2, 0, 0), include.mean = FALSE)
+
+comparison_ar2 <- data.frame(
+  Parameter = c("ar1", "ar2"),
+  True   = phi_true,
+  MLE    = c(coef(fit_mle_ar2)["ar1"], coef(fit_mle_ar2)["ar2"]),
+  PMM3   = coef(fit_pmm3_ar2)[c("ar1", "ar2")]
+)
+
+print(comparison_ar2, row.names = FALSE)
+
+cat("\nPMM3 g3 =", fit_pmm3_ar2@g_coefficient,
+    "(expected variance ratio PMM3/OLS)\n")
+```
+
+---
+
+## Part 2: MA Models with PMM3
+
+MA models are more challenging because innovations are not directly observable.
+PMM3 uses CSS residuals as initial estimates and refines them via
+Newton-Raphson.
+
+### MA(1) Model
+
+```{r ma1_simulation}
+n <- 300
+theta_true <- 0.6
+
+# Truncated normal innovations (|x| ≤ 2): symmetric, platykurtic
+innov_raw <- rnorm(n * 2)
+innov_tn <- innov_raw[abs(innov_raw) <= 2]
+innov_tn <- innov_tn[1:n]
+innov_tn <- innov_tn / sd(innov_tn)  # standardize
+
+# Generate MA(1) series
+ma_data <- arima.sim(n = n, list(ma = theta_true), innov = innov_tn)
+
+# Fit
+fit_pmm3_ma1 <- ma_pmm3(ma_data, order = 1, include.mean = FALSE)
+fit_mle_ma1  <- arima(ma_data, order = c(0, 0, 1), include.mean = FALSE)
+
+cat("True MA(1) coefficient:", theta_true, "\n")
+cat("MLE estimate:          ", coef(fit_mle_ma1)["ma1"], "\n")
+cat("PMM3 estimate:         ", coef(fit_pmm3_ma1)["ma1"], "\n")
+cat("\nConvergence:", fit_pmm3_ma1@convergence, "\n")
+cat("Iterations: ", fit_pmm3_ma1@iterations, "\n")
+```
+
+### MA(2) Model
+
+```{r ma2_example}
+theta_true <- c(0.5, 0.3)
+
+innov_u <- runif(400, -sqrt(3), sqrt(3))
+ma2_data <- arima.sim(n = 400, list(ma = theta_true), innov = innov_u)
+
+fit_pmm3_ma2 <- ma_pmm3(ma2_data, order = 2, include.mean = FALSE)
+fit_mle_ma2  <- arima(ma2_data, order = c(0, 0, 2), include.mean = FALSE)
+
+comparison_ma2 <- data.frame(
+  Parameter = c("ma1", "ma2"),
+  True   = theta_true,
+  MLE    = c(coef(fit_mle_ma2)["ma1"], coef(fit_mle_ma2)["ma2"]),
+  PMM3   = coef(fit_pmm3_ma2)[c("ma1", "ma2")]
+)
+
+print(comparison_ma2, row.names = FALSE)
+```
+
+---
+
+## Part 3: ARMA Models
+
+ARMA models combine autoregressive and moving average components. PMM3
+handles both components simultaneously.
+
+### ARMA(1,1) Model
+
+```{r arma11_simulation}
+n <- 400
+phi_true   <- 0.5
+theta_true <- 0.3
+
+# Uniform innovations
+innov_arma <- runif(n, -sqrt(3), sqrt(3))
+
+arma_data <- arima.sim(n = n,
+                       list(ar = phi_true, ma = theta_true),
+                       innov = innov_arma)
+
+# Fit
+fit_pmm3_arma <- arma_pmm3(arma_data, order = c(1, 1), include.mean = FALSE)
+fit_mle_arma  <- arima(arma_data, order = c(1, 0, 1), include.mean = FALSE)
+
+cat("True: AR =", phi_true, ", MA =", theta_true, "\n\n")
+
+cat("MLE estimates:\n")
+print(coef(fit_mle_arma)[c("ar1", "ma1")])
+
+cat("\nPMM3 estimates:\n")
+print(coef(fit_pmm3_arma))
+
+summary(fit_pmm3_arma)
+```
+
+### Diagnostic Plots
+
+```{r arma_diagnostics, fig.height=6}
+plot(fit_pmm3_arma)
+```
+
+The four diagnostic panels:
+
+1. **Residuals vs Time** — should show no patterns
+2. **Q-Q Plot** — deviations from the line indicate non-normality
+   (expected for platykurtic errors: lighter tails than normal)
+3. **ACF** — should fall within confidence bands (white noise)
+4. **Histogram** — platykurtic residuals appear flatter than a bell curve
+
+---
+
+## Part 4: ARIMA Models with Differencing
+
+For non-stationary series, ARIMA models apply differencing before estimation.
+PMM3 uses a **nonlinear solver** with `stats::arima(fixed=...)` for proper
+residual computation and `numDeriv::jacobian` for derivatives. This approach
+correctly captures the full ARIMA dynamics after differencing.
+
+### ARIMA(1,1,0) Model
+
+```{r arima110_simulation}
+n <- 300
+phi_true <- 0.6
+
+# Generate stationary AR(1) with uniform innovations
+innov_arima <- runif(n, -sqrt(3), sqrt(3))
+x_stat <- arima.sim(n = n, list(ar = phi_true), innov = innov_arima)
+
+# Integrate (cumulative sum) to create non-stationary series
+x_integrated <- cumsum(x_stat)
+
+plot(x_integrated, type = "l",
+     main = "ARIMA(1,1,0) Process (Integrated AR(1))",
+     ylab = "Value", xlab = "Time", col = "darkgreen", lwd = 1.2)
+```
+
+### Fit ARIMA(1,1,0)
+
+```{r arima_fit}
+fit_pmm3_arima <- arima_pmm3(x_integrated, order = c(1, 1, 0),
+                             include.mean = FALSE)
+fit_mle_arima  <- arima(x_integrated, order = c(1, 1, 0),
+                        include.mean = FALSE)
+
+cat("True AR(1) coefficient:", phi_true, "\n")
+cat("MLE estimate:          ", coef(fit_mle_arima)["ar1"], "\n")
+cat("PMM3 estimate:         ", coef(fit_pmm3_arima)["ar1"], "\n")
+
+summary(fit_pmm3_arima)
+```
+
+### ARIMA(1,1,1) Model
+
+```{r arima111_example}
+phi_true   <- 0.4
+theta_true <- 0.3
+
+innov_111 <- runif(350, -sqrt(3), sqrt(3))
+x_stat2 <- arima.sim(n = 350, list(ar = phi_true, ma = theta_true),
+                     innov = innov_111)
+x_int2 <- cumsum(x_stat2)
+
+fit_pmm3_111 <- arima_pmm3(x_int2, order = c(1, 1, 1), include.mean = FALSE)
+fit_mle_111  <- arima(x_int2, order = c(1, 1, 1), include.mean = FALSE)
+
+comparison_arima <- data.frame(
+  Parameter = c("ar1", "ma1"),
+  True   = c(phi_true, theta_true),
+  MLE    = c(coef(fit_mle_111)["ar1"], coef(fit_mle_111)["ma1"]),
+  PMM3   = coef(fit_pmm3_111)[c("ar1", "ma1")]
+)
+
+print(comparison_arima, row.names = FALSE)
+```
+
+---
+
+## Part 5: Forecasting with PMM3 Models
+
+All PMM3 time series objects support the `predict()` method.
+
+```{r forecasting}
+# Forecast 10 steps ahead from the AR(1) model
+preds_ar <- predict(fit_pmm3_ar1, n.ahead = 10)
+
+cat("AR(1) PMM3 forecasts (10 steps):\n")
+print(round(as.numeric(preds_ar), 4))
+
+# Plot original series with forecasts
+n_plot <- 80
+plot_data <- tail(as.numeric(ar_data), n_plot)
+pred_vals <- as.numeric(preds_ar)
+
+plot(seq_along(plot_data), plot_data, type = "l",
+     xlim = c(1, n_plot + 10),
+     ylim = range(c(plot_data, pred_vals)),
+     main = "AR(1) PMM3: Observed and Forecast",
+     xlab = "Time", ylab = "Value",
+     col = "steelblue", lwd = 1.5)
+lines(n_plot + 1:10, pred_vals, col = "red", lwd = 2, lty = 2)
+legend("topleft", legend = c("Observed", "Forecast"),
+       col = c("steelblue", "red"), lty = c(1, 2), lwd = c(1.5, 2))
+```
+
+### Forecasting ARMA Models
+
+```{r forecast_arma}
+# Forecast from the ARMA(1,1) model
+preds_arma <- predict(fit_pmm3_arma, n.ahead = 10)
+
+cat("ARMA(1,1) PMM3 forecasts (10 steps):\n")
+print(round(as.numeric(preds_arma), 4))
+```
+
+---
+
+## Part 6: Method Selection with pmm_dispatch()
+
+The `pmm_dispatch()` function automates the choice between OLS, PMM2, and
+PMM3 by analyzing innovation properties from an initial classical fit.
+
+```{r dispatch_example}
+# Fit classical model first
+fit_classical <- arima(ar_data, order = c(1, 0, 0), include.mean = FALSE)
+res_classical <- residuals(fit_classical)
+
+# Dispatch
+recommendation <- pmm_dispatch(res_classical)
+```
+
+```{r dispatch_comparison}
+# Compare all three methods on uniform innovations
+cat("Recommended method:", recommendation$method, "\n")
+cat("gamma3 =", round(recommendation$gamma3, 3),
+    " gamma4 =", round(recommendation$gamma4, 3), "\n")
+
+if (!is.null(recommendation$g3)) {
+  cat("g3 =", round(recommendation$g3, 3),
+      " (PMM3 variance reduction factor)\n")
+}
+```
+
+---
+
+## Part 7: Real-Data Example — DJIA 2002
+
+The `djia2002` dataset contains daily closing prices and changes of the
+Dow Jones Industrial Average for July–December 2002.
+
+```{r djia_load}
+data(djia2002)
+changes <- na.omit(djia2002$change)
+n_obs <- length(changes)
+
+plot(changes, type = "l",
+     main = "DJIA Daily Changes (Jul-Dec 2002)",
+     ylab = "Change (USD)", xlab = "Trading Day",
+     col = "steelblue", lwd = 1.2)
+abline(h = 0, col = "red", lty = 2)
+```
+
+### Analyze Innovation Properties
+
+```{r djia_analysis}
+# Fit a classical AR(1)
+fit_djia_mle <- arima(changes, order = c(1, 0, 0))
+res_djia <- residuals(fit_djia_mle)
+
+cat("Innovation diagnostics:\n")
+cat("  Skewness (gamma3):", round(pmm_skewness(res_djia), 3), "\n")
+cat("  Kurtosis (gamma4):", round(pmm_kurtosis(res_djia), 3), "\n")
+cat("  Symmetry test:\n")
+sym <- test_symmetry(res_djia)
+cat("    symmetric:", sym$is_symmetric, "\n")
+cat("    message:  ", sym$message, "\n")
+
+# Let pmm_dispatch decide
+dispatch <- pmm_dispatch(res_djia)
+cat("\nRecommended method:", dispatch$method, "\n")
+```
+
+### Fit AR(1) with All Three Methods
+
+```{r djia_fit}
+fit_djia_pmm2 <- ar_pmm2(changes, order = 1)
+fit_djia_pmm3 <- ar_pmm3(changes, order = 1)
+
+comparison_djia <- data.frame(
+  Method = c("MLE", "PMM2", "PMM3"),
+  ar1 = c(coef(fit_djia_mle)["ar1"],
+          coef(fit_djia_pmm2)["ar1"],
+          coef(fit_djia_pmm3)["ar1"])
+)
+print(comparison_djia, row.names = FALSE)
+```
+
+The DJIA data is known to have **positive skewness**, so `pmm_dispatch()`
+typically recommends **PMM2** as the appropriate method for this series.
+PMM3 may still converge but is not expected to improve upon PMM2 when
+the innovations are asymmetric.
+
+---
+
+## Part 8: Real-Data Example — WTI Crude Oil Prices
+
+The `DCOILWTICO` dataset contains WTI crude oil daily spot prices.
+
+```{r oil_load}
+data(DCOILWTICO)
+
+# Compute log-returns (remove NAs)
+prices <- na.omit(DCOILWTICO$DCOILWTICO)
+log_returns <- diff(log(prices))
+log_returns <- log_returns[is.finite(log_returns)]
+
+plot(log_returns, type = "l",
+     main = "WTI Crude Oil: Daily Log-Returns",
+     ylab = "Log-return", xlab = "Trading Day",
+     col = "darkgreen", lwd = 0.8)
+abline(h = 0, col = "red", lty = 2)
+```
+
+### Innovation Analysis
+
+```{r oil_analysis}
+# Fit AR(1) to log-returns
+fit_oil_mle <- arima(log_returns, order = c(1, 0, 0))
+res_oil <- residuals(fit_oil_mle)
+
+cat("Log-return innovation diagnostics:\n")
+cat("  Skewness (gamma3):", round(pmm_skewness(res_oil), 3), "\n")
+cat("  Kurtosis (gamma4):", round(pmm_kurtosis(res_oil), 3), "\n")
+
+# Dispatch
+dispatch_oil <- pmm_dispatch(res_oil)
+cat("\nRecommended method:", dispatch_oil$method, "\n")
+```
+
+### Fit and Compare
+
+```{r oil_fit}
+fit_oil_pmm2 <- ar_pmm2(log_returns, order = 1)
+fit_oil_pmm3 <- ar_pmm3(log_returns, order = 1)
+
+comparison_oil <- data.frame(
+  Method = c("MLE", "PMM2", "PMM3"),
+  ar1 = c(coef(fit_oil_mle)["ar1"],
+          coef(fit_oil_pmm2)["ar1"],
+          coef(fit_oil_pmm3)["ar1"])
+)
+print(comparison_oil, row.names = FALSE)
+
+vf2_oil <- pmm2_variance_factor(fit_oil_pmm2@m2, fit_oil_pmm2@m3, fit_oil_pmm2@m4)
+cat("\nPMM2 g2 =", vf2_oil$g2, "\n")
+cat("PMM3 g3 =", fit_oil_pmm3@g_coefficient, "\n")
+```
+
+Crude oil log-returns typically exhibit **heavy tails** (positive excess
+kurtosis), so PMM2 is usually the better choice. This example demonstrates
+how `pmm_dispatch()` guides users to the correct method.
+
+---
+
+## Part 9: Adaptive Mode
+
+By default, PMM3 computes $\kappa$ from the initial residuals and holds it
+fixed. In **adaptive mode**, $\kappa$ is re-estimated from the current
+residuals at each Newton-Raphson iteration:
+
+```{r adaptive_mode}
+# Fixed kappa (default)
+fit_fixed <- ar_pmm3(ar_data, order = 1, include.mean = FALSE, adaptive = FALSE)
+
+# Adaptive kappa
+fit_adapt <- ar_pmm3(ar_data, order = 1, include.mean = FALSE, adaptive = TRUE)
+
+comparison_adaptive <- data.frame(
+  Mode   = c("Fixed kappa", "Adaptive kappa"),
+  ar1    = c(coef(fit_fixed)["ar1"], coef(fit_adapt)["ar1"]),
+  g3     = c(fit_fixed@g_coefficient, fit_adapt@g_coefficient),
+  iters  = c(fit_fixed@iterations, fit_adapt@iterations)
+)
+print(comparison_adaptive, row.names = FALSE)
+```
+
+Adaptive mode may improve estimates when the distribution departs
+significantly from the initial OLS residuals, at the cost of additional
+iterations.
+
+---
+
+## Part 10: Model Comparison via AIC
+
+The `AIC()` method is available for all PMM3 time series objects.
+
+```{r aic_comparison}
+# Fit several AR orders with PMM3
+aic_vals <- sapply(1:5, function(p) {
+  fit <- ar_pmm3(ar_data, order = p, include.mean = FALSE)
+  AIC(fit)
+})
+
+aic_df <- data.frame(Order = 1:5, AIC = round(aic_vals, 2))
+print(aic_df, row.names = FALSE)
+
+cat("\nBest AR order by AIC:", which.min(aic_vals), "\n")
+```
+
+---
+
+## Practical Guidelines
+
+### When to Use PMM3 for Time Series
+
+**Recommended when innovations are:**
+
+- Symmetric ($|\gamma_3| \leq 0.3$)
+- Platykurtic ($\gamma_4 < -0.7$)
+- Example distributions: uniform, beta-symmetric, truncated normal
+- Sample size $n \geq 200$ for reliable moment estimation
+
+**Use PMM2 instead when:**
+
+- Innovations are **skewed** ($|\gamma_3| > 0.3$)
+- Financial returns with asymmetric tails
+
+**Stick with MLE/CSS when:**
+
+- Innovations are approximately **Gaussian**
+- Very small samples ($n < 100$)
+
+### Diagnostic Workflow
+
+1. **Fit a classical model** (MLE/CSS) as baseline
+2. **Examine residuals** for non-normality:
+   - `pmm_skewness(residuals)` — check symmetry
+   - `pmm_kurtosis(residuals)` — check tail behavior
+   - `test_symmetry(residuals)` — formal symmetry check
+3. **Use `pmm_dispatch(residuals)`** for automatic method selection
+4. **Refit with PMM3** if platykurtic and symmetric
+5. **Compare AIC** across model orders
+6. **Validate** with diagnostic plots and out-of-sample forecasts
+
+### Computational Notes
+
+- **AR models**: Fast convergence (3–10 iterations), linearized solver
+- **MA models**: Moderate (10–30 iterations), linearized solver
+- **ARMA models**: Moderate (10–30 iterations), linearized solver
+- **ARIMA models**: Nonlinear solver with numerical Jacobian — slower but
+  accurately captures differencing dynamics
+
+---
+
+## Efficiency Summary
+
+Based on Monte Carlo simulations (R = 1000, n = 200, uniform innovations):
+
+| Model       | MSE Ratio (PMM3/MLE) | Variance Reduction |
+|-------------|----------------------|--------------------|
+| AR(1)       | 0.55–0.70           | 30–45%            |
+| AR(2)       | 0.60–0.75           | 25–40%            |
+| MA(1)       | 0.90–1.00           | 0–10%             |
+| ARMA(1,1)   | 0.70–0.85           | 15–30%            |
+| ARIMA(1,1,0)| 0.32–0.70           | 30–68%            |
+
+**Key insight:** PMM3 provides the largest gains for AR and ARIMA models
+with platykurtic innovations. MA models show smaller improvements because
+CSS residuals are less precise starting points, but PMM3 remains consistent.
+
+---
+
+## Available Functions
+
+| Function          | Model        | Class Returned |
+|-------------------|--------------|----------------|
+| `ar_pmm3()`       | AR(p)        | `ARPMM3`      |
+| `ma_pmm3()`       | MA(q)        | `MAPMM3`      |
+| `arma_pmm3()`     | ARMA(p,q)    | `ARMAPMM3`    |
+| `arima_pmm3()`    | ARIMA(p,d,q) | `ARIMAPMM3`   |
+| `ts_pmm3()`       | Any of above | `TS3fit` subclass |
+
+All classes support: `coef()`, `residuals()`, `fitted()`, `predict()`,
+`summary()`, `plot()`, `AIC()`.
+
+---
+
+## Next Steps
+
+- **PMM3 for linear regression**: See `vignette("pmm3_symmetric_errors")`
+- **PMM2 time series**: See `vignette("pmm2_time_series")` for asymmetric innovations
+- **Bootstrap inference**: See `vignette("bootstrap_inference")`
+- **PMM2 basics**: See `vignette("pmm2_introduction")`
+
+---
+
+## References
+
+1. Zabolotnii S., Warsza Z.L., Tkachenko O. (2018). Polynomial Estimation
+   of Linear Regression Parameters for the Asymmetric PDF of Errors. Springer
+   AISC, vol 743. doi:10.1007/978-3-319-77179-3_75
+
+2. Zabolotnii S., Tkachenko O., Warsza Z.L. (2022). Application of the
+   Polynomial Maximization Method for Estimation Parameters of Autoregressive
+   Models with Asymmetric Innovations. Springer AISC, vol 1427.
+   doi:10.1007/978-3-031-03502-9_37
+
+3. Package functions: `?ar_pmm3`, `?ma_pmm3`, `?arma_pmm3`, `?arima_pmm3`
+
+4. Method selection: `?pmm_dispatch`, `?test_symmetry`
+
+5. GitHub: https://github.com/SZabolotnii/EstemPMM

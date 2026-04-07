@@ -8,6 +8,7 @@ arima_pmm2(
   x,
   order = c(1, 1, 1),
   method = "pmm2",
+  pmm2_variant = c("unified_global", "unified_iterative", "linearized"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -28,6 +29,11 @@ arima_pmm2(
 - For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
+
+\item{pmm2_variant}{Character string specifying PMM2 implementation variant.
+Options: \code{"unified_global"} (default, one-step correction),
+\code{"unified_iterative"} (full Newton-Raphson), or
+\code{"linearized"} (specialized for MA/SMA models).}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 
@@ -51,5 +57,59 @@ coefficients, residual series, central moments, differencing order,
 intercept, original series, and convergence diagnostics.
 }
 \description{
-Fit an ARIMA model using PMM2 (wrapper)
+Estimates autoregressive integrated moving-average model parameters using PMM2.
+ARIMA models extend ARMA to non-stationary series via differencing. PMM2
+provides robust parameter estimates for the stationary ARMA component after
+differencing is applied.
+}
+\details{
+\strong{PMM2 Variants:}
+\itemize{
+\item \code{"unified_global"} (default): One-step correction from MLE/CSS estimates.
+Fast and reliable for most ARIMA specifications.
+\item \code{"unified_iterative"}: Full Newton-Raphson optimization. Recommended
+for ARIMA models with complex dynamics or when \code{unified_global} shows
+residual non-Gaussianity.
+\item \code{"linearized"}: First-order approximation. Not typically recommended
+for ARIMA unless MA component dominates.
+}
+
+\strong{Variant Selection Guidelines:}
+\itemize{
+\item For standard ARIMA(p,d,q): Use \code{"unified_global"} (default)
+\item For models with d >= 2 or high orders: Try \code{"unified_iterative"}
+\item If MA component is large relative to AR: Consider \code{"unified_iterative"}
+}
+
+\strong{ARIMA Estimation Workflow:}
+\enumerate{
+\item Apply differencing of order \code{d} to achieve stationarity
+\item Estimate ARMA(p,q) model on differenced series using PMM2
+\item Return coefficients and diagnostics for the integrated model
+}
+
+\strong{Differencing Notes:}
+The \code{d} parameter determines how many times the series is differenced.
+\code{d=0} reduces to ARMA, \code{d=1} handles unit root processes, \code{d=2}
+is rare but useful for some economic series with trend acceleration.
+}
+\examples{
+\donttest{
+# Fit ARIMA(1,1,1) model to non-stationary series
+x <- cumsum(arima.sim(n = 200, list(ar = 0.6, ma = -0.4)))
+fit1 <- arima_pmm2(x, order = c(1, 1, 1))
+coef(fit1)
+
+# ARIMA(2,1,0) - random walk with AR(2) innovations
+x2 <- cumsum(arima.sim(n = 250, list(ar = c(0.7, -0.3))))
+fit2 <- arima_pmm2(x2, order = c(2, 1, 0), pmm2_variant = "unified_global")
+
+# ARIMA(0,2,2) - double differencing with MA(2)
+x3 <- cumsum(cumsum(arima.sim(n = 300, list(ma = c(0.5, 0.3)))))
+fit3 <- arima_pmm2(x3, order = c(0, 2, 2), pmm2_variant = "unified_iterative")
+}
+  
+}
+\seealso{
+\code{\link{arma_pmm2}}, \code{\link{sarima_pmm2}}, \code{\link{ar_pmm2}}
 }

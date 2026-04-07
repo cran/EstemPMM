@@ -356,6 +356,12 @@ fitted_values <- function(object, data = NULL) {
 #' @param pmm2_args List of arguments to pass to lm_pmm2()
 #'
 #' @return List with OLS and PMM2 fit objects
+#'
+#' @examples
+#' \donttest{
+#' result <- compare_with_ols(mpg ~ wt, data = mtcars)
+#' }
+#'
 #' @export
 compare_with_ols <- function(formula, data, pmm2_args = list()) {
   # Fit OLS model
@@ -436,12 +442,41 @@ compare_with_ols <- function(formula, data, pmm2_args = list()) {
 
 #' Prediction method for PMM2fit objects
 #'
-#' @param object PMM2fit object
-#' @param newdata New data frame for prediction
-#' @param debug Logical value, whether to output debug information
-#' @param ... additional arguments (not used)
+#' Computes predictions for new data using a fitted PMM2 model. The method
+#' extracts the formula from the fitted model, constructs a design matrix
+#' from the new data, and computes predictions via matrix multiplication.
+#' This approach works with arbitrary variable names and model specifications.
 #'
-#' @return Vector of predictions
+#' @param object PMM2fit object returned by \code{lm_pmm2()}
+#' @param newdata Data frame containing the predictor variables with the same
+#'   names as those used in the original model fit. Required parameter.
+#' @param debug Logical value indicating whether to output debug information
+#'   about the prediction process. Default is FALSE.
+#' @param ... Additional arguments (currently not used)
+#'
+#' @return Numeric vector of predicted values for the observations in \code{newdata}
+#'
+#' @details
+#' The prediction is computed as \code{X \%*\% beta} where X is the design matrix
+#' constructed from \code{newdata} using the model formula, and beta are the
+#' estimated coefficients. The method automatically handles:
+#' \itemize{
+#'   \item Models with intercepts and without
+#'   \item Arbitrary variable names (not limited to "x1", "x2", etc.)
+#'   \item Interaction terms and transformations specified in the formula
+#'   \item Automatic coefficient reordering to match design matrix columns
+#' }
+#'
+#' @examples
+#' \donttest{
+#' # Fit model
+#' fit <- lm_pmm2(mpg ~ wt + hp, data = mtcars)
+#'
+#' # Predict on new data
+#' newdata <- data.frame(wt = c(2.5, 3.0), hp = c(100, 150))
+#' predictions <- predict(fit, newdata = newdata)
+#' }
+#'
 #' @export
 setMethod("predict", "PMM2fit",
           function(object, newdata = NULL, debug = FALSE, ...) {
@@ -479,76 +514,46 @@ setMethod("predict", "PMM2fit",
               cat("Columns of design matrix:", paste(colnames(X), collapse=", "), "\n")
             }
 
-            # Fix coefficient names problem
-            # If names are missing or empty, fill them with correct values
+            # Ensure coefficient names match design matrix columns
             if(is.null(names(object@coefficients)) || all(names(object@coefficients) == "")) {
               if(debug) {
-                cat("Coefficient names are missing or empty. Using default names.\n")
+                cat("Coefficient names are missing or empty. Using design matrix column names.\n")
               }
 
               expected_names <- colnames(X)
               if(length(expected_names) == length(object@coefficients)) {
                 names(object@coefficients) <- expected_names
               } else {
-                warning("Number of coefficients does not match number of columns in design matrix.")
-                if(length(object@coefficients) == 3 && ncol(X) == 3 &&
-                   all(colnames(X) == c("(Intercept)", "x1", "x2"))) {
-                  # Most common case - regression with 2 variables
-                  names(object@coefficients) <- c("(Intercept)", "x1", "x2")
-                } else {
-                  # General name assignment
-                  names(object@coefficients) <- paste0("coef", seq_along(object@coefficients))
-                }
-              }
-
-              if(debug) {
-                cat("New coefficient names:", paste(names(object@coefficients), collapse=", "), "\n")
+                stop("Number of coefficients does not match number of columns in design matrix.")
               }
             }
 
-            # Calculate predictions directly
-            predictions <- numeric(nrow(newdata))
+            if(debug) {
+              cat("Coefficient names:", paste(names(object@coefficients), collapse=", "), "\n")
+            }
 
-            # For simplicity, just calculate predictions manually for typical regression
-            if(length(object@coefficients) == 3 && all(c("x1", "x2") %in% names(newdata))) {
+            # Verify that coefficient names match design matrix columns
+            if(!identical(names(object@coefficients), colnames(X))) {
               if(debug) {
-                cat("Computing predictions manually for typical regression with intercept and two variables.\n")
+                cat("Warning: Coefficient names do not match design matrix columns.\n")
+                cat("Coefficients:", paste(names(object@coefficients), collapse=", "), "\n")
+                cat("Design matrix:", paste(colnames(X), collapse=", "), "\n")
               }
-              # If this is typical regression y ~ x1 + x2
-              intercept_idx <- which(names(object@coefficients) == "(Intercept)")
-              x1_idx <- which(names(object@coefficients) == "x1")
-              x2_idx <- which(names(object@coefficients) == "x2")
 
-              if(length(intercept_idx) == 1 && length(x1_idx) == 1 && length(x2_idx) == 1) {
-                predictions <- object@coefficients[intercept_idx] +
-                  object@coefficients[x1_idx] * newdata$x1 +
-                  object@coefficients[x2_idx] * newdata$x2
+              # Try to reorder coefficients to match design matrix
+              if(all(colnames(X) %in% names(object@coefficients))) {
+                object@coefficients <- object@coefficients[colnames(X)]
+                if(debug) {
+                  cat("Coefficients reordered to match design matrix.\n")
+                }
               } else {
-                # If names are not as expected, use their positions
-                predictions <- object@coefficients[1] +
-                  object@coefficients[2] * newdata$x1 +
-                  object@coefficients[3] * newdata$x2
-              }
-            } else {
-              # For other cases
-              if(debug) {
-                cat("Attempting to compute general case.\n")
-              }
-              # Simplified approach for general case
-              coeffs <- object@coefficients
-
-              # Intercept
-              if("(Intercept)" %in% names(coeffs)) {
-                predictions <- predictions + coeffs["(Intercept)"]
-              }
-
-              # Other variables
-              for(var_name in intersect(names(coeffs), names(newdata))) {
-                if(var_name != "(Intercept)") {
-                  predictions <- predictions + coeffs[var_name] * newdata[[var_name]]
-                }
+                stop("Design matrix columns do not match coefficient names. Cannot compute predictions.")
               }
             }
+
+            # Calculate predictions using matrix multiplication
+            # This is the general approach that works for all cases
+            predictions <- as.vector(X %*% object@coefficients)
 
             if(debug) {
               cat("Size of prediction vector:", length(predictions), "\n")
