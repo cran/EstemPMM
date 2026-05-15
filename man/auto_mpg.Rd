@@ -28,18 +28,19 @@ auto_mpg
 \description{
 Fuel consumption and vehicle characteristics for 398 automobiles
 from the 1970s and 1980s. This dataset is used in published PMM research
-to demonstrate both PMM2 (asymmetric residuals: MPG vs Weight) and
-PMM3 (symmetric platykurtic residuals: MPG vs Horsepower).
+to demonstrate PMM2 on asymmetric regression residuals and to illustrate
+dispatcher diagnostics on practical automotive data.
 }
 \details{
-Three regression examples from published PMM papers:
+Practical regression examples:
 \itemize{
 \item \strong{MPG vs Acceleration} (PMM2, linear): residuals have
 gamma3 = 0.49, g2 = 0.86 (Zabolotnii et al., 2018)
 \item \strong{MPG vs Weight} (PMM2, quadratic): residuals have
 gamma3 = 0.8, g2 = 0.83 (Zabolotnii et al., 2025)
-\item \strong{MPG vs Horsepower} (PMM3, quadratic): residuals have
-gamma3 ~ 0.2, gamma4 = 1.3, g3 = 0.89 (Zabolotnii et al., 2025)
+\item \strong{MPG vs Horsepower} (diagnostic, quadratic): residuals are
+nearly symmetric but have positive excess kurtosis, so the current
+\code{pmm_dispatch()} rule does not treat this as a PMM3 platykurtic case.
 }
 }
 \examples{

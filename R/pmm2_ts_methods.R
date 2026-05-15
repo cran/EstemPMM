@@ -943,3 +943,132 @@ compare_sar_methods <- function(x,
 
   invisible(result_df)
 }
+
+# ==============================================================================
+# logLik, nobs, vcov, confint for TS2fit
+# ==============================================================================
+
+#' Extract log-likelihood from TS2fit object
+#'
+#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#'
+#' @param object TS2fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Object of class \code{logLik}
+#' @export
+setMethod("logLik", "TS2fit",
+          function(object, ...) {
+            res <- object@residuals
+            n   <- length(res)
+            p   <- length(object@coefficients)
+            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            attr(ll, "df")   <- p   # consistent with compare_ts_methods AIC convention
+            attr(ll, "nobs") <- n
+            class(ll) <- "logLik"
+            ll
+          })
+
+#' Number of observations in TS2fit object
+#'
+#' Returns the effective sample size (length of the residual vector).
+#'
+#' @param object TS2fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Integer effective sample size
+#' @export
+setMethod("nobs", "TS2fit",
+          function(object, ...) {
+            length(object@residuals)
+          })
+
+#' Variance-covariance matrix for TS2fit AR models
+#'
+#' For AR models, returns \eqn{\sigma^2 g_2 (X^\top X)^{-1}} where X is the
+#' lagged design matrix. For MA/ARMA/ARIMA models, asymptotic vcov requires
+#' the full Fisher information matrix; use \code{\link{ts_pmm2_inference}} for
+#' bootstrap-based standard errors instead.
+#'
+#' @param object TS2fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Numeric covariance matrix (AR models only)
+#' @export
+setMethod("vcov", "TS2fit",
+          function(object, ...) {
+            if (object@model_type != "ar")
+              stop("vcov() is only available for AR models fitted with PMM2.\n",
+                   "  For MA/ARMA/ARIMA use ts_pmm2_inference() for bootstrap standard errors.")
+            p   <- object@order$ar
+            x   <- object@original_series
+            xc  <- x - object@intercept
+            X   <- create_ar_matrix(xc, p)
+            vm  <- pmm2_variance_matrices(X, object@m2, object@m3, object@m4)
+            V   <- vm$pmm2
+            nms <- paste0("ar", seq_len(p))
+            rownames(V) <- nms
+            colnames(V) <- nms
+            V
+          })
+
+#' Confidence intervals for TS2fit AR model coefficients
+#'
+#' For AR models, computes normal-approximation CIs using
+#' \code{\link{vcov,TS2fit-method}}.
+#' For MA/ARMA/ARIMA models, use \code{\link{ts_pmm2_inference}} instead.
+#'
+#' @param object TS2fit (or subclass) object
+#' @param parm character or integer vector of parameter names/indices
+#' @param level confidence level (default 0.95)
+#' @param ... Additional arguments (not used)
+#'
+#' @return Matrix with lower and upper confidence limits
+#' @export
+setMethod("confint", "TS2fit",
+          function(object, parm, level = 0.95, ...) {
+            if (object@model_type != "ar")
+              stop("confint() is only available for AR models fitted with PMM2.\n",
+                   "  For MA/ARMA/ARIMA use ts_pmm2_inference() for bootstrap confidence intervals.")
+            p   <- object@order$ar
+            cf  <- object@coefficients[seq_len(p)]
+            names(cf) <- paste0("ar", seq_len(p))
+            se  <- sqrt(diag(vcov(object)))
+            a   <- (1 - level) / 2
+            fac <- stats::qnorm(c(a, 1 - a))
+            ci  <- cf + outer(se, fac)
+            colnames(ci) <- paste0(format(100 * c(a, 1 - a), trim = TRUE), " %")
+            if (!missing(parm)) ci <- ci[parm, , drop = FALSE]
+            ci
+          })
+
+#' AIC for TS2fit objects
+#'
+#' @param object TS2fit (or subclass) object
+#' @param ... Ignored
+#' @param k Penalty per parameter (default 2)
+#' @return Numeric AIC value
+#' @export
+setMethod("AIC", "TS2fit",
+          function(object, ..., k = 2) {
+            res <- object@residuals[is.finite(object@residuals)]
+            n   <- length(res)
+            p   <- length(object@coefficients)
+            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            -2 * ll + k * p
+          })
+
+#' BIC for TS2fit objects
+#'
+#' @param object TS2fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#' @return Numeric BIC value
+#' @export
+setMethod("BIC", "TS2fit",
+          function(object, ...) {
+            res <- object@residuals[is.finite(object@residuals)]
+            n   <- length(res)
+            p   <- length(object@coefficients)
+            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            -2 * ll + log(n) * p
+          })

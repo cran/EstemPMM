@@ -49,7 +49,8 @@ pmm_dispatch(residuals(fit_ols))
 
 fit_ols2 <- lm(mpg ~ horsepower + I(horsepower^2), data = na.omit(auto_mpg))
 pmm_dispatch(residuals(fit_ols2))
-# -> Recommends PMM3 (symmetric platykurtic residuals, gamma4 ≈ -1.3)
+# -> Recommends OLS: near-symmetric but positive-kurtosis residuals are not
+#    the symmetric platykurtic regime targeted by PMM3
 ```
 
 ### PMM2 — Asymmetric Errors

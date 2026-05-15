@@ -308,6 +308,55 @@ setMethod("AIC", "PMM3fit",
             -2 * ll + k * p
           })
 
+#' Calculate BIC for PMM3fit object
+#'
+#' @param object PMM3fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return BIC value
+#' @export
+setMethod("BIC", "PMM3fit",
+          function(object, ...) {
+            res <- object@residuals
+            n <- length(res)
+            p <- length(object@coefficients)
+            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            -2 * ll + log(n) * p
+          })
+
+#' Extract log-likelihood from PMM3fit object
+#'
+#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#'
+#' @param object PMM3fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Object of class \code{logLik}
+#' @export
+setMethod("logLik", "PMM3fit",
+          function(object, ...) {
+            res <- object@residuals
+            n <- length(res)
+            p <- length(object@coefficients)
+            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            attr(ll, "df") <- p
+            attr(ll, "nobs") <- n
+            class(ll) <- "logLik"
+            ll
+          })
+
+#' Number of observations in PMM3fit object
+#'
+#' @param object PMM3fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Integer number of observations
+#' @export
+setMethod("nobs", "PMM3fit",
+          function(object, ...) {
+            length(object@residuals)
+          })
+
 #' Plot diagnostic plots for PMM3fit object
 #'
 #' @param x PMM3fit object

@@ -48,7 +48,7 @@ par(mfrow = c(1, 1))
 
 # Calculate skewness and kurtosis
 cat(sprintf("Skewness: %.3f\n", pmm_skewness(residuals_ols)))
-cat(sprintf("Excess Kurtosis: %.3f\n", pmm_kurtosis(residuals_ols) - 3))
+cat(sprintf("Excess Kurtosis: %.3f\n", pmm_kurtosis(residuals_ols)))
 
 ## ----fit_models---------------------------------------------------------------
 # Fit PMM2 model

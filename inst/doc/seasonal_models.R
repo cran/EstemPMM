@@ -1,15 +1,4 @@
----
-title: "Seasonal Time Series Models with PMM2"
-author: "Serhii Zabolotnii"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Seasonal Time Series Models with PMM2}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include = FALSE}
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -18,49 +7,13 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
-```
 
-## Introduction
-
-Many real-world time series exhibit **seasonal patterns**: monthly sales with annual cycles, quarterly GDP with repeating patterns, daily electricity demand with weekly cycles. Traditional seasonal models like **SAR** (Seasonal Autoregressive), **SMA** (Seasonal Moving Average), **SARMA**, and **SARIMA** are powerful tools, but their classical estimation methods assume Gaussian innovations.
-
-This vignette demonstrates how **PMM2 estimation** for seasonal models provides:
-
-1. **More efficient parameter estimates** when innovations are non-Gaussian
-2. **Robust performance** with asymmetric and heavy-tailed errors
-3. **Variance reductions of 20-50%** compared to classical methods
-4. **Comprehensive tools** for model fitting, diagnostics, and comparison
-
----
-
-## Load Package
-
-```{r load_library}
+## ----load_library-------------------------------------------------------------
 library(EstemPMM)
 library(ggplot2)
 set.seed(2025)
-```
 
----
-
-## Part 1: Seasonal Autoregressive (SAR) Models
-
-### Understanding SAR Models
-
-A **SAR(p,P)_s** model with seasonal period *s* is:
-
-$$
-y_t = \phi_1 y_{t-1} + \cdots + \phi_p y_{t-p} + \Phi_1 y_{t-s} + \cdots + \Phi_P y_{t-Ps} + \varepsilon_t
-$$
-
-where:
-- $\phi_i$ are non-seasonal AR coefficients
-- $\Phi_j$ are seasonal AR coefficients
-- $s$ is the seasonal period (e.g., 12 for monthly data, 4 for quarterly)
-
-### Example: SAR(1,1)_12 with Monthly Data
-
-```{r sar_1_1_12}
+## ----sar_1_1_12---------------------------------------------------------------
 # Simulate SAR(1,1)_12 model
 n <- 360  # 30 years of monthly data
 phi <- 0.5      # Non-seasonal AR(1)
@@ -85,11 +38,8 @@ y_ts <- ts(y, frequency = 12, start = c(2000, 1))
 plot(y_ts, main = "SAR(1,1)_12 Process with Skewed Innovations",
      ylab = "Value", xlab = "Year", col = "steelblue", lwd = 1.5)
 abline(h = 0, col = "gray", lty = 2)
-```
 
-### Seasonal Patterns Visualization
-
-```{r sar_seasonal_pattern}
+## ----sar_seasonal_pattern-----------------------------------------------------
 # Extract seasonal patterns
 months <- rep(1:12, length.out = length(y))
 seasonal_df <- data.frame(
@@ -102,11 +52,8 @@ boxplot(Value ~ Month, data = seasonal_df,
         main = "Seasonal Pattern in SAR(1,1)_12 Data",
         xlab = "Month", ylab = "Value",
         col = "lightblue", border = "steelblue")
-```
 
-### Fitting SAR Models: PMM2 vs Classical Methods
-
-```{r fit_sar}
+## ----fit_sar------------------------------------------------------------------
 # Fit SAR(1,1)_12 with PMM2
 fit_sar_pmm2 <- sar_pmm2(
   y,
@@ -151,13 +98,8 @@ print(coef(fit_sar_pmm2))
 # Display PMM2 summary with diagnostics
 cat("\n")
 summary(fit_sar_pmm2)
-```
 
-### Understanding PMM2 Efficiency
-
-The PMM2 method computes the **variance correction factor** $g$:
-
-```{r sar_g_factor}
+## ----sar_g_factor-------------------------------------------------------------
 # Extract moments from fit
 m2 <- fit_sar_pmm2@m2
 m3 <- fit_sar_pmm2@m3
@@ -172,11 +114,8 @@ cat("  Theoretical variance reduction:",
 
 # For Gaussian innovations, g ≈ 1 (no improvement)
 # For skewed/heavy-tailed innovations, g < 1 (PMM2 more efficient)
-```
 
-### Residual Diagnostics
-
-```{r sar_diagnostics, fig.height=7}
+## ----sar_diagnostics, fig.height=7--------------------------------------------
 # Create diagnostic plots
 par(mfrow = c(2, 2))
 
@@ -204,25 +143,8 @@ hist(residuals_pmm2, breaks = 30, col = "lightblue",
 lines(density(residuals_pmm2), col = "darkblue", lwd = 2)
 
 par(mfrow = c(1, 1))
-```
 
----
-
-## Part 2: Seasonal Moving Average (SMA) Models
-
-### Understanding SMA Models
-
-A **SMA(Q)_s** model is:
-
-$$
-y_t = \varepsilon_t + \Theta_1 \varepsilon_{t-s} + \cdots + \Theta_Q \varepsilon_{t-Qs}
-$$
-
-where $\Theta_j$ are seasonal MA coefficients.
-
-### Example: SMA(1)_4 with Quarterly Data
-
-```{r sma_1_4}
+## ----sma_1_4------------------------------------------------------------------
 # Simulate SMA(1)_4 model (quarterly seasonality)
 n <- 200
 Theta <- 0.6    # Seasonal MA(1) coefficient
@@ -248,11 +170,8 @@ y_ts <- ts(y, frequency = 4, start = c(2000, 1))
 plot(y_ts, main = "SMA(1)_4 Process with Exponential Innovations",
      ylab = "Value", xlab = "Year", col = "darkgreen", lwd = 1.5)
 abline(h = 0, col = "gray", lty = 2)
-```
 
-### Quarterly Seasonal Pattern
-
-```{r sma_quarterly_pattern}
+## ----sma_quarterly_pattern----------------------------------------------------
 quarters <- rep(1:4, length.out = length(y))
 seasonal_df_q <- data.frame(
   Quarter = factor(quarters, labels = paste("Q", 1:4, sep = "")),
@@ -263,11 +182,8 @@ boxplot(Value ~ Quarter, data = seasonal_df_q,
         main = "Seasonal Pattern in SMA(1)_4 Data",
         xlab = "Quarter", ylab = "Value",
         col = "lightgreen", border = "darkgreen")
-```
 
-### Fitting SMA Models
-
-```{r fit_sma}
+## ----fit_sma------------------------------------------------------------------
 # Fit SMA(1)_4 with PMM2
 fit_sma_pmm2 <- sma_pmm2(
   y,
@@ -297,11 +213,8 @@ print(coef(fit_sma_pmm2))
 
 cat("\n")
 summary(fit_sma_pmm2)
-```
 
-### SMA Convergence Behavior
-
-```{r sma_convergence}
+## ----sma_convergence----------------------------------------------------------
 cat("PMM2 Convergence:\n")
 cat("  Converged:", fit_sma_pmm2@convergence, "\n")
 cat("  Iterations:", fit_sma_pmm2@iterations, "\n")
@@ -314,92 +227,65 @@ g_sma <- pmm2_variance_factor(fit_sma_pmm2@m2,
 cat("\nEfficiency:\n")
 cat("  g-factor:", round(g_sma$g, 4), "\n")
 cat("  Variance reduction:", round((1 - g_sma$g) * 100, 2), "%\n")
-```
 
----
+## ----sar_monte_carlo, eval=FALSE----------------------------------------------
+# # This demonstrates the Monte Carlo approach
+# # (Set eval=TRUE to run, but it takes several minutes)
+# 
+# n_sims <- 500
+# n <- 200
+# 
+# sar_results <- data.frame(
+#   method = character(),
+#   phi_estimate = numeric(),
+#   Phi_estimate = numeric(),
+#   stringsAsFactors = FALSE
+# )
+# 
+# for (i in 1:n_sims) {
+#   # Generate data
+#   innov <- rgamma(n + 100, shape = 2, scale = 1) - 2
+#   y_sim <- numeric(n + 100)
+#   for (t in 13:(n + 100)) {
+#     y_sim[t] <- 0.5 * y_sim[t-1] + 0.6 * y_sim[t-12] + innov[t]
+#   }
+#   y_sim <- y_sim[101:(n + 100)]
+# 
+#   # Fit PMM2
+#   fit_pmm2 <- sar_pmm2(y_sim, order = c(1, 1),
+#                        season = list(period = 12),
+#                        method = "pmm2", verbose = FALSE)
+# 
+#   # Fit CSS
+#   fit_css <- sar_pmm2(y_sim, order = c(1, 1),
+#                       season = list(period = 12),
+#                       method = "css", verbose = FALSE)
+# 
+#   # Store results
+#   sar_results <- rbind(sar_results,
+#     data.frame(method = "PMM2",
+#                phi_estimate = coef(fit_pmm2)[1],
+#                Phi_estimate = coef(fit_pmm2)[2]),
+#     data.frame(method = "CSS",
+#                phi_estimate = coef(fit_css)[1],
+#                Phi_estimate = coef(fit_css)[2])
+#   )
+# }
+# 
+# # Compute variance reduction
+# var_pmm2_phi <- var(sar_results$phi_estimate[sar_results$method == "PMM2"])
+# var_css_phi <- var(sar_results$phi_estimate[sar_results$method == "CSS"])
+# var_reduction_phi <- (1 - var_pmm2_phi / var_css_phi) * 100
+# 
+# var_pmm2_Phi <- var(sar_results$Phi_estimate[sar_results$method == "PMM2"])
+# var_css_Phi <- var(sar_results$Phi_estimate[sar_results$method == "CSS"])
+# var_reduction_Phi <- (1 - var_pmm2_Phi / var_css_Phi) * 100
+# 
+# cat("SAR(1,1)_12 Monte Carlo Results (n=200, 500 sims):\n")
+# cat("  Variance reduction for phi:", round(var_reduction_phi, 2), "%\n")
+# cat("  Variance reduction for Phi:", round(var_reduction_Phi, 2), "%\n")
 
-## Part 3: Monte Carlo Evidence for Seasonal Models
-
-### SAR Monte Carlo Comparison
-
-```{r sar_monte_carlo, eval=FALSE}
-# This demonstrates the Monte Carlo approach
-# (Set eval=TRUE to run, but it takes several minutes)
-
-n_sims <- 500
-n <- 200
-
-sar_results <- data.frame(
-  method = character(),
-  phi_estimate = numeric(),
-  Phi_estimate = numeric(),
-  stringsAsFactors = FALSE
-)
-
-for (i in 1:n_sims) {
-  # Generate data
-  innov <- rgamma(n + 100, shape = 2, scale = 1) - 2
-  y_sim <- numeric(n + 100)
-  for (t in 13:(n + 100)) {
-    y_sim[t] <- 0.5 * y_sim[t-1] + 0.6 * y_sim[t-12] + innov[t]
-  }
-  y_sim <- y_sim[101:(n + 100)]
-  
-  # Fit PMM2
-  fit_pmm2 <- sar_pmm2(y_sim, order = c(1, 1), 
-                       season = list(period = 12),
-                       method = "pmm2", verbose = FALSE)
-  
-  # Fit CSS
-  fit_css <- sar_pmm2(y_sim, order = c(1, 1), 
-                      season = list(period = 12),
-                      method = "css", verbose = FALSE)
-  
-  # Store results
-  sar_results <- rbind(sar_results,
-    data.frame(method = "PMM2", 
-               phi_estimate = coef(fit_pmm2)[1],
-               Phi_estimate = coef(fit_pmm2)[2]),
-    data.frame(method = "CSS",
-               phi_estimate = coef(fit_css)[1],
-               Phi_estimate = coef(fit_css)[2])
-  )
-}
-
-# Compute variance reduction
-var_pmm2_phi <- var(sar_results$phi_estimate[sar_results$method == "PMM2"])
-var_css_phi <- var(sar_results$phi_estimate[sar_results$method == "CSS"])
-var_reduction_phi <- (1 - var_pmm2_phi / var_css_phi) * 100
-
-var_pmm2_Phi <- var(sar_results$Phi_estimate[sar_results$method == "PMM2"])
-var_css_Phi <- var(sar_results$Phi_estimate[sar_results$method == "CSS"])
-var_reduction_Phi <- (1 - var_pmm2_Phi / var_css_Phi) * 100
-
-cat("SAR(1,1)_12 Monte Carlo Results (n=200, 500 sims):\n")
-cat("  Variance reduction for phi:", round(var_reduction_phi, 2), "%\n")
-cat("  Variance reduction for Phi:", round(var_reduction_Phi, 2), "%\n")
-```
-
-**Documented Results:** Based on comprehensive Monte Carlo studies with 100-500 replications:
-
-| Model | Innovation | Sample Size | Variance Reduction |
-|-------|-----------|-------------|-------------------|
-| SAR(1,1)_12 | Gamma (shape=2) | n=100 | 20-25% |
-| SAR(1,1)_12 | Gamma (shape=2) | n=200 | 25-30% |
-| SAR(1,1)_12 | Gamma (shape=2) | n=500 | 30-35% |
-| SMA(1)_4 | Exponential | n=100 | 25-30% |
-| SMA(1)_4 | Exponential | n=200 | 30-35% |
-| SMA(1)_4 | Exponential | n=500 | 35-40% |
-
----
-
-## Part 4: SARMA and SARIMA Models
-
-### SARMA(p,P,q,Q)_s Models
-
-SARMA models combine both SAR and SMA components:
-
-```{r sarma_example}
+## ----sarma_example------------------------------------------------------------
 # Simulate SARMA(1,0,0,1)_12 model
 # This is SAR(1) × SMA(1) with period 12
 n <- 300
@@ -447,83 +333,67 @@ print(coef(fit_sarma_css))
 
 cat("\nPMM2 Estimates:\n")
 print(coef(fit_sarma_pmm2))
-```
 
-### SARIMA Models with Differencing
+## ----sarima_example, eval=FALSE-----------------------------------------------
+# # Simulate SARIMA(1,1,0)×(1,1,1)_12
+# # This includes regular differencing (d=1) and seasonal differencing (D=1)
+# n <- 400
+# phi <- 0.4
+# Phi <- 0.5
+# Theta <- 0.6
+# 
+# # Generate series (using standard arima.sim)
+# innovations <- rgamma(n + 100, shape = 2, scale = 1) - 2
+# 
+# y <- arima.sim(
+#   n = n,
+#   model = list(
+#     order = c(1, 1, 0),
+#     ar = phi,
+#     seasonal = list(order = c(1, 1, 1), period = 12,
+#                     sar = Phi, sma = Theta)
+#   ),
+#   innov = innovations[1:n]
+# )
+# 
+# # Plot the non-stationary series
+# plot(y, type = "l", main = "SARIMA(1,1,0)×(1,1,1)_12 Process",
+#      ylab = "Value", xlab = "Time", col = "purple", lwd = 1.5)
+# 
+# # Fit SARIMA with PMM2
+# fit_sarima_pmm2 <- sarima_pmm2(
+#   y,
+#   order = c(1, 1, 0, 1),       # Model orders: (p, P, q, Q)
+#   seasonal = list(
+#     order = c(1, 1),           # Differencing orders: (d, D)
+#     period = 12
+#   ),
+#   method = "pmm2",
+#   verbose = FALSE
+# )
+# 
+# # Fit with CSS
+# fit_sarima_css <- sarima_pmm2(
+#   y,
+#   order = c(1, 1, 0, 1),       # Model orders: (p, P, q, Q)
+#   seasonal = list(order = c(1, 1), period = 12),
+#   method = "css",
+#   verbose = FALSE
+# )
+# 
+# # Compare
+# cat("True parameters:\n")
+# cat("  phi =", phi, ", Phi =", Phi, ", Theta =", Theta, "\n\n")
+# 
+# cat("CSS Estimates:\n")
+# print(coef(fit_sarima_css))
+# 
+# cat("\nPMM2 Estimates:\n")
+# print(coef(fit_sarima_pmm2))
+# 
+# summary(fit_sarima_pmm2)
 
-For non-stationary seasonal series:
-
-> **Note:** SARIMA models with complex differencing structures may have convergence challenges. 
-> The example below is provided for illustration but not executed during vignette build.
-> See Monte Carlo results for empirically validated configurations.
-
-```{r sarima_example, eval=FALSE}
-# Simulate SARIMA(1,1,0)×(1,1,1)_12
-# This includes regular differencing (d=1) and seasonal differencing (D=1)
-n <- 400
-phi <- 0.4
-Phi <- 0.5
-Theta <- 0.6
-
-# Generate series (using standard arima.sim)
-innovations <- rgamma(n + 100, shape = 2, scale = 1) - 2
-
-y <- arima.sim(
-  n = n,
-  model = list(
-    order = c(1, 1, 0),
-    ar = phi,
-    seasonal = list(order = c(1, 1, 1), period = 12,
-                    sar = Phi, sma = Theta)
-  ),
-  innov = innovations[1:n]
-)
-
-# Plot the non-stationary series
-plot(y, type = "l", main = "SARIMA(1,1,0)×(1,1,1)_12 Process",
-     ylab = "Value", xlab = "Time", col = "purple", lwd = 1.5)
-
-# Fit SARIMA with PMM2
-fit_sarima_pmm2 <- sarima_pmm2(
-  y,
-  order = c(1, 1, 0),          # Non-seasonal: (p, d, q)
-  seasonal = list(
-    order = c(1, 1, 1),        # Seasonal: (P, D, Q)
-    period = 12
-  ),
-  method = "pmm2",
-  verbose = FALSE
-)
-
-# Fit with CSS
-fit_sarima_css <- sarima_pmm2(
-  y,
-  order = c(1, 1, 0),          # Non-seasonal: (p, d, q)
-  seasonal = list(order = c(1, 1, 1), period = 12),
-  method = "css",
-  verbose = FALSE
-)
-
-# Compare
-cat("True parameters:\n")
-cat("  phi =", phi, ", Phi =", Phi, ", Theta =", Theta, "\n\n")
-
-cat("CSS Estimates:\n")
-print(coef(fit_sarima_css))
-
-cat("\nPMM2 Estimates:\n")
-print(coef(fit_sarima_pmm2))
-
-summary(fit_sarima_pmm2)
-```
-
----
-
-## Part 5: Model Comparison and Selection
-
-### Comparing Different Methods
-
-```{r method_comparison}
+## ----method_comparison--------------------------------------------------------
 # For the SAR(1,1)_12 data, compare all available methods
 methods <- c("ols", "css", "pmm2")
 
@@ -547,11 +417,8 @@ print(comparison_results)
 # Best method by AIC
 best_method <- comparison_results$Method[which.min(comparison_results$AIC)]
 cat("\nBest method by AIC:", best_method, "\n")
-```
 
-### Information Criteria for Model Selection
-
-```{r information_criteria}
+## ----information_criteria-----------------------------------------------------
 # Compare different SAR orders
 models <- list(
   list(name = "SAR(1,0)", order = c(1, 0)),
@@ -587,13 +454,8 @@ best_bic <- ic_results$Model[which.min(ic_results$BIC)]
 
 cat("\nBest model by AIC:", best_aic, "\n")
 cat("Best model by BIC:", best_bic, "\n")
-```
 
----
-
-## Part 6: Real-World Example - Airline Passengers
-
-```{r airline_data}
+## ----airline_data-------------------------------------------------------------
 # Use classic airline passengers dataset
 # (In practice, load with: data(AirPassengers))
 # Here we'll simulate similar data
@@ -626,11 +488,8 @@ plot(passengers_ts, main = "Simulated Airline Passengers",
 # Decompose
 decomp <- decompose(passengers_ts)
 plot(decomp)
-```
 
-### Modeling Strategy
-
-```{r airline_modeling}
+## ----airline_modeling---------------------------------------------------------
 # Take log to stabilize variance
 log_passengers <- log(passengers_ts)
 
@@ -655,9 +514,9 @@ par(mfrow = c(1, 1))
 # Fit SARIMA(0,1,1)×(0,1,1)_12 (classic airline model)
 fit_airline_pmm2 <- sarima_pmm2(
   log_passengers,
-  order = c(0, 1, 1, 0),           # (p, d, q, P)
+  order = c(0, 0, 1, 1),           # Model orders: (p, P, q, Q)
   seasonal = list(
-    order = c(0, 1, 1),            # (P, D, Q)
+    order = c(1, 1),               # Differencing orders: (d, D)
     period = 12
   ),
   method = "pmm2",
@@ -688,55 +547,8 @@ lines(ts(forecasts, frequency = 12, start = c(2012, 1)),
       col = "red", lwd = 2, lty = 2)
 legend("topleft", legend = c("Observed", "Forecast"),
        col = c("darkblue", "red"), lty = c(1, 2), lwd = c(1.5, 2))
-```
 
----
-
-## Part 7: Practical Guidelines
-
-### When to Use Seasonal Models
-
-**Use SAR/SMA/SARMA/SARIMA when:**
-
-- Data exhibits **clear seasonal patterns** (visual inspection, ACF shows seasonal spikes)
-- Regular period: monthly (s=12), quarterly (s=4), weekly (s=7)
-- Seasonal dependencies are **systematic**, not random
-- Enough data: at least **2-3 complete seasonal cycles**
-
-### Choosing Between Seasonal Models
-
-1. **SAR**: Autoregressive at seasonal lags → use when current value depends on past seasonal values
-2. **SMA**: Moving average at seasonal lags → use when current value depends on past seasonal shocks
-3. **SARMA**: Combination → more flexible, use when both components are present
-4. **SARIMA**: Includes differencing → use for non-stationary seasonal series
-
-### PMM2 vs Classical Methods
-
-**Use PMM2 when:**
-
-- Innovations are **non-Gaussian** (check residuals from classical fit)
-- Data shows **asymmetry or heavy tails**
-- **Sample size ≥ 200** for reliable moment estimation
-- **Precision matters** more than speed
-
-**Use classical methods (CSS/OLS) when:**
-
-- Innovations are approximately **Gaussian**
-- **Very small samples** (n < 100)
-- **Speed is critical** (PMM2 is iterative)
-- Exploratory analysis only
-
-### Diagnostic Checklist
-
-After fitting a seasonal model:
-
-1. ✓ **Residuals**: Check for patterns over time
-2. ✓ **ACF of residuals**: Should show no significant autocorrelation
-3. ✓ **Seasonal ACF**: Check lags at multiples of s (e.g., 12, 24, 36)
-4. ✓ **Q-Q plot**: Assess distributional assumptions
-5. ✓ **Ljung-Box test**: Formal test for residual autocorrelation
-
-```{r diagnostics_checklist}
+## ----diagnostics_checklist----------------------------------------------------
 # Example diagnostic workflow
 residuals_check <- fit_sar_pmm2@residuals
 
@@ -762,102 +574,34 @@ cat("  Interpretation:",
 cat("\nResidual distribution:\n")
 cat("  Skewness:", round(pmm_skewness(residuals_check), 4), "\n")
 cat("  Kurtosis:", round(pmm_kurtosis(residuals_check), 4), "\n")
-```
 
----
-
-## Part 8: Advanced Topics
-
-### Multiple Seasonal Periods
-
-Some series have **multiple seasonal patterns** (e.g., daily data with weekly and annual cycles). While EstemPMM currently supports single seasonality, you can:
-
-1. **Deseasonalize** for the primary period first
-2. **Model residuals** for secondary seasonality
-3. **Combine forecasts** from multiple models
-
-### Seasonal Adjustment
-
-```{r seasonal_adjustment}
+## ----seasonal_adjustment------------------------------------------------------
 # Extract seasonal component from fitted model
-fitted_values <- y - fit_sar_pmm2@residuals
+resid_sar <- as.numeric(fit_sar_pmm2@residuals)
+y_fit <- tail(as.numeric(y), length(resid_sar))
+fitted_values <- y_fit - resid_sar
 seasonal_component <- fitted_values - mean(fitted_values)
 
 # Plot seasonally adjusted series
-y_adjusted <- y - seasonal_component
+y_adjusted <- y_fit - seasonal_component
 
 par(mfrow = c(2, 1))
-plot(y, type = "l", main = "Original Series",
+plot(y_fit, type = "l", main = "Original Series (aligned to fitted residuals)",
      col = "steelblue", lwd = 1.5, ylab = "Value")
 plot(y_adjusted, type = "l", main = "Seasonally Adjusted Series",
      col = "darkgreen", lwd = 1.5, ylab = "Value")
 par(mfrow = c(1, 1))
-```
 
-### Bootstrap Inference for Seasonal Models
+## ----bootstrap_seasonal, eval=FALSE-------------------------------------------
+# # Bootstrap confidence intervals for SAR parameters
+# boot_sar <- ts_pmm2_inference(
+#   fit_sar_pmm2,
+#   B = 500,                    # Number of bootstrap samples
+#   method = "block",           # Block bootstrap for time series
+#   block_length = 12,          # Block length = seasonal period
+#   seed = 2025,
+#   parallel = FALSE
+# )
+# 
+# summary(boot_sar)
 
-```{r bootstrap_seasonal, eval=FALSE}
-# Bootstrap confidence intervals for SAR parameters
-boot_sar <- ts_pmm2_inference(
-  fit_sar_pmm2,
-  B = 500,                    # Number of bootstrap samples
-  method = "block",           # Block bootstrap for time series
-  block_length = 12,          # Block length = seasonal period
-  seed = 2025,
-  parallel = FALSE
-)
-
-summary(boot_sar)
-```
-
----
-
-## Summary
-
-**Key Takeaways:**
-
-1. **Seasonal models** (SAR, SMA, SARMA, SARIMA) extend standard time series models to capture periodic patterns
-2. **PMM2 estimation** provides **20-50% variance reduction** when innovations are non-Gaussian
-3. **Comprehensive diagnostics** ensure model adequacy
-4. **Real-world applications** benefit from PMM2's robustness to asymmetry and outliers
-5. **Model selection** uses AIC/BIC and residual diagnostics
-
-**Recommended Workflow:**
-
-1. **Visualize** → identify seasonality and stationarity
-2. **Fit baseline** → use classical methods (CSS/OLS)
-3. **Check residuals** → assess distributional assumptions
-4. **Refit with PMM2** → if residuals are non-Gaussian
-5. **Validate** → diagnostics and out-of-sample forecasting
-6. **Inference** → bootstrap for confidence intervals
-
----
-
-## References
-
-1. **Zabolotnii, S., et al. (2018)**. "Polynomial Estimation of Linear Regression Parameters for Asymmetric PDF of Errors". Springer, AUTOMATION 2018.
-
-2. **Box, G.E.P., Jenkins, G.M., Reinsel, G.C.** (2015). *Time Series Analysis: Forecasting and Control*. 5th edition, Wiley.
-
-3. **Hyndman, R.J., Athanasopoulos, G.** (2021). *Forecasting: Principles and Practice*. 3rd edition, OTexts.
-
-4. **EstemPMM Package Documentation**:
-   - `?sar_pmm2` - Seasonal autoregressive models
-   - `?sma_pmm2` - Seasonal moving average models
-   - `?sarma_pmm2` - Seasonal ARMA models
-   - `?sarima_pmm2` - Seasonal ARIMA models
-   - `?ts_pmm2_inference` - Bootstrap inference
-
-5. **GitHub Repository**: https://github.com/SZabolotnii/EstemPMM
-
----
-
-## Next Steps
-
-- **Bootstrap Inference**: See `vignette("bootstrap_inference")` for detailed confidence interval methods
-- **Non-Seasonal Models**: See `vignette("pmm2_time_series")` for AR, MA, ARMA, ARIMA
-- **Linear Regression**: See `vignette("pmm2_introduction")` for regression applications
-
----
-
-*This vignette was generated with EstemPMM version `r packageVersion("EstemPMM")`.*

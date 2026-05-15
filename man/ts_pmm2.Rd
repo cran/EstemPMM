@@ -23,10 +23,12 @@ ts_pmm2(
 \item{x}{Numeric vector of time series data}
 
 \item{order}{Model order specification:
-- For AR models: a single integer (AR order)
-- For MA models: a single integer (MA order)
-- For ARMA models: vector c(p, q) (AR and MA orders)
-- For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
+\itemize{
+\item For AR models: a single integer (AR order)
+\item For MA models: a single integer (MA order)
+\item For ARMA models: vector c(p, q) (AR and MA orders)
+\item For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)
+}}
 
 \item{model_type}{String specifying the model type: "ar", "ma", "arma", or "arima"}
 

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Serhii Zabolotnii" />
 
-<meta name="date" content="2026-04-06" />
+<meta name="date" content="2026-05-14" />
 
 <title>Introduction to PMM2: Polynomial Maximization Method</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Introduction to PMM2: Polynomial
 Maximization Method</h1>
 <h4 class="author">Serhii Zabolotnii</h4>
-<h4 class="date">2026-04-06</h4>
+<h4 class="date">2026-05-14</h4>
 
 
 
@@ -468,8 +468,8 @@ advantages.</p>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Calculate skewness and kurtosis</span></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Skewness: %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">pmm_skewness</span>(residuals_ols)))</span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; Skewness: 1.865</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Excess Kurtosis: %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">pmm_kurtosis</span>(residuals_ols) <span class="sc">-</span> <span class="dv">3</span>))</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Excess Kurtosis: 1.710</span></span></code></pre></div>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Excess Kurtosis: %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">pmm_kurtosis</span>(residuals_ols)))</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Excess Kurtosis: 4.710</span></span></code></pre></div>
 <p>The histogram and Q-Q plot clearly show <strong>right
 skewness</strong>, violating the normality assumption that underpins OLS
 optimality.</p>
@@ -494,15 +494,16 @@ optimality.</p>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; === PMM2 Estimates ===</span></span>
 <span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">coef</span>(fit_pmm2))</span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; [1] 9.980738 2.465210</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">=== True Values ===</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; === True Values ===</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Intercept:&quot;</span>, beta_0, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; Intercept: 10</span></span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Slope:    &quot;</span>, beta_1, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; Slope:     2.5</span></span></code></pre></div>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; (Intercept)           x </span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt;    9.980738    2.465210</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">=== True Values ===</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; === True Values ===</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Intercept:&quot;</span>, beta_0, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; Intercept: 10</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Slope:    &quot;</span>, beta_1, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt; Slope:     2.5</span></span></code></pre></div>
 <hr />
 </div>
 <div id="bootstrap-inference-for-variance-comparison" class="section level3">
@@ -603,27 +604,28 @@ indicating higher precision.</p>
 <span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; lm_pmm2(formula = y ~ x + I(x^2), data = dat_poly, verbose = FALSE)</span></span>
 <span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; [1]  2.0897269  2.8725555 -0.4779162</span></span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; Central moments of initial residuals:</span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;   m2 = 10.05743 </span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;   m3 = 37.45091 </span></span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;   m4 = 489.7792 </span></span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; Theoretical characteristics of PMM2 (S = 2):</span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;   c3 = 1.174172 </span></span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;   c4 = 1.842015 </span></span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;   g  = 0.6411572  (expected ratio Var[PMM2]/Var[OLS])</span></span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt; Algorithm information:</span></span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;   Convergence status: TRUE </span></span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;   Iterations: 3 </span></span>
-<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt; Approximate statistical inference via bootstrap (B=100):</span></span>
-<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt;     Estimate  Std.Error   t.value      p.value   conf.low  conf.high</span></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt; 1  2.0897269 0.28555149  7.318214 2.513545e-13  1.5799690  2.6122483</span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt; 2  2.8725555 0.09797060 29.320586 0.000000e+00  2.6892140  3.0583990</span></span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; 3 -0.4779162 0.06130577 -7.795616 6.439294e-15 -0.5863997 -0.3492109</span></span></code></pre></div>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt; (Intercept)           x      I(x^2) </span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;   2.0897269   2.8725555  -0.4779162 </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt; Central moments of initial residuals:</span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;   m2 = 10.05743 </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;   m3 = 37.45091 </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;   m4 = 489.7792 </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt; Theoretical characteristics of PMM2 (S = 2):</span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;   c3 = 1.174172 </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;   c4 = 1.842015 </span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;   g  = 0.6411572  (expected ratio Var[PMM2]/Var[OLS])</span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt; Algorithm information:</span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;   Convergence status: TRUE </span></span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt;   Iterations: 3 </span></span>
+<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt; Approximate statistical inference via bootstrap (B=100):</span></span>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt;               Estimate  Std.Error   t.value      p.value   conf.low  conf.high</span></span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.0897269 0.28555149  7.318214 2.513545e-13  1.5799690  2.6122483</span></span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; x            2.8725555 0.09797060 29.320586 0.000000e+00  2.6892140  3.0583990</span></span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt; I(x^2)      -0.4779162 0.06130577 -7.795616 6.439294e-15 -0.5863997 -0.3492109</span></span></code></pre></div>
 <hr />
 </div>
 <div id="diagnostic-plots" class="section level2">

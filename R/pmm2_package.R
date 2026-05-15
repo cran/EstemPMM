@@ -2,7 +2,7 @@
 
 #' @importFrom methods is new slotNames
 #' @importFrom graphics abline hist legend lines par plot
-#' @importFrom stats acf aggregate arima as.formula cov dnorm lm lm.fit lowess model.frame model.matrix model.response na.fail na.pass pnorm qqline qqnorm quantile arima.sim diffinv rnorm sd
+#' @importFrom stats acf aggregate arima as.formula confint cov dnorm lm lm.fit logLik lowess model.frame model.matrix model.response na.fail na.pass nobs pnorm qnorm qqline qqnorm quantile arima.sim diffinv rnorm sd vcov
 #' @importFrom utils head tail
 NULL
 

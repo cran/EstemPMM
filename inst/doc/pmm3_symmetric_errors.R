@@ -41,7 +41,7 @@ qqline(res_ols, col = "red", lwd = 2)
 par(mfrow = c(1, 1))
 
 cat("Skewness (gamma3):", round(pmm_skewness(res_ols), 3), "\n")
-cat("Excess kurtosis (gamma4):", round(pmm_kurtosis(res_ols) - 3, 3), "\n")
+cat("Excess kurtosis (gamma4):", round(pmm_kurtosis(res_ols), 3), "\n")
 
 ## ----dispatch_uniform---------------------------------------------------------
 recommendation <- pmm_dispatch(res_ols)
@@ -113,7 +113,7 @@ fit_auto_ols <- lm(mpg ~ horsepower + I(horsepower^2), data = auto_complete)
 res_auto <- residuals(fit_auto_ols)
 cat("Residual diagnostics:\n")
 cat("  Skewness (gamma3):", round(pmm_skewness(res_auto), 3), "\n")
-cat("  Kurtosis (gamma4):", round(pmm_kurtosis(res_auto) - 3, 3), "\n")
+cat("  Excess kurtosis (gamma4):", round(pmm_kurtosis(res_auto), 3), "\n")
 sym_test <- test_symmetry(res_auto)
 cat("  Symmetric:", sym_test$is_symmetric, "\n")
 
@@ -121,28 +121,9 @@ cat("  Symmetric:", sym_test$is_symmetric, "\n")
 dispatch_auto <- pmm_dispatch(res_auto)
 
 ## ----auto_mpg_pmm3------------------------------------------------------------
-# Fit PMM3 (quadratic model)
-fit_auto_pmm3 <- lm_pmm3(mpg ~ horsepower + I(horsepower^2),
-                          data = auto_complete)
-
-# Fit PMM2 for comparison
-fit_auto_pmm2 <- lm_pmm2(mpg ~ horsepower + I(horsepower^2),
-                          data = auto_complete, na.action = na.omit)
-
-# Compare all three methods
-comparison_auto <- data.frame(
-  Method    = c("OLS", "PMM2", "PMM3"),
-  Intercept = c(coef(fit_auto_ols)[1], coef(fit_auto_pmm2)[1],
-                coef(fit_auto_pmm3)[1]),
-  HP        = c(coef(fit_auto_ols)[2], coef(fit_auto_pmm2)[2],
-                coef(fit_auto_pmm3)[2]),
-  HP_sq     = c(coef(fit_auto_ols)[3], coef(fit_auto_pmm2)[3],
-                coef(fit_auto_pmm3)[3])
-)
-print(comparison_auto, row.names = FALSE, digits = 6)
-
-cat("\nPMM3 g3 =", fit_auto_pmm3@g_coefficient,
-    " (improvement:", round((1 - fit_auto_pmm3@g_coefficient) * 100, 1), "%)\n")
+# Dispatcher-selected workflow: keep OLS, because gamma4 is positive.
+cat("Dispatcher method:", dispatch_auto$method, "\n")
+cat("Reason:", dispatch_auto$reasoning, "\n")
 
 ## ----auto_mpg_plot, fig.width=7, fig.height=5---------------------------------
 hp_seq <- seq(min(auto_complete$horsepower),
@@ -150,18 +131,13 @@ hp_seq <- seq(min(auto_complete$horsepower),
 newdata <- data.frame(horsepower = hp_seq)
 
 pred_ols  <- predict(fit_auto_ols, newdata = newdata)
-pred_pmm3 <- predict(fit_auto_pmm3,
-                     newdata = data.frame(horsepower = hp_seq,
-                                          `I(horsepower^2)` = hp_seq^2))
 
 plot(auto_complete$horsepower, auto_complete$mpg,
-     main = "MPG vs Horsepower: OLS and PMM3 Quadratic Fits",
+     main = "MPG vs Horsepower: OLS Quadratic Fit",
      xlab = "Horsepower", ylab = "Miles per Gallon",
      col = "gray70", pch = 16, cex = 0.7)
 lines(hp_seq, pred_ols, col = "blue", lwd = 2)
-lines(hp_seq, as.numeric(pred_pmm3), col = "red", lwd = 2, lty = 2)
-legend("topright", legend = c("OLS", "PMM3"),
-       col = c("blue", "red"), lty = c(1, 2), lwd = 2)
+legend("topright", legend = "OLS", col = "blue", lty = 1, lwd = 2)
 
 ## ----auto_mpg_acceleration----------------------------------------------------
 # Linear model: MPG vs Acceleration
@@ -170,7 +146,7 @@ res_accel <- residuals(fit_accel_ols)
 
 cat("Acceleration residual diagnostics:\n")
 cat("  Skewness (gamma3):", round(pmm_skewness(res_accel), 3), "\n")
-cat("  Kurtosis (gamma4):", round(pmm_kurtosis(res_accel) - 3, 3), "\n")
+cat("  Excess kurtosis (gamma4):", round(pmm_kurtosis(res_accel), 3), "\n")
 
 # Dispatch
 dispatch_accel <- pmm_dispatch(res_accel)

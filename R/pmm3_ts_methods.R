@@ -169,6 +169,57 @@ setMethod("AIC", "TS3fit",
             -2 * ll + k * p
           })
 
+#' BIC for TS3fit objects
+#'
+#' @param object TS3fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Numeric BIC value
+#' @export
+setMethod("BIC", "TS3fit",
+          function(object, ...) {
+            res <- object@residuals
+            res <- res[is.finite(res)]
+            n <- length(res)
+            p <- length(object@coefficients)
+            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            -2 * ll + log(n) * p
+          })
+
+#' Extract log-likelihood from TS3fit object
+#'
+#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#'
+#' @param object TS3fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Object of class \code{logLik}
+#' @export
+setMethod("logLik", "TS3fit",
+          function(object, ...) {
+            res <- object@residuals
+            res <- res[is.finite(res)]
+            n <- length(res)
+            p <- length(object@coefficients)
+            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            attr(ll, "df") <- p
+            attr(ll, "nobs") <- n
+            class(ll) <- "logLik"
+            ll
+          })
+
+#' Number of observations in TS3fit object
+#'
+#' @param object TS3fit (or subclass) object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Integer effective sample size
+#' @export
+setMethod("nobs", "TS3fit",
+          function(object, ...) {
+            sum(is.finite(object@residuals))
+          })
+
 #' Plot diagnostic plots for TS3fit object
 #'
 #' @param x TS3fit object

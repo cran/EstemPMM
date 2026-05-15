@@ -139,6 +139,9 @@ lm_pmm2 <- function(formula, data,
     cat("  Iterations:", iter, "\n")
   }
 
+  # Restore coefficient names from design matrix columns
+  names(b_est) <- colnames(X)
+
   # Return S4 object with all results
   ans <- new("PMM2fit",
              coefficients = b_est,
@@ -213,6 +216,105 @@ setMethod("AIC", "PMM2fit",
 
             # AIC
             -2 * ll + k * p
+          })
+
+#' Calculate BIC for PMM2fit object
+#'
+#' @param object PMM2fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return BIC value
+#' @export
+setMethod("BIC", "PMM2fit",
+          function(object, ...) {
+            res <- object@residuals
+            n <- length(res)
+            p <- length(object@coefficients)
+            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            -2 * ll + log(n) * p
+          })
+
+#' Extract log-likelihood from PMM2fit object
+#'
+#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#'
+#' @param object PMM2fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Object of class \code{logLik}
+#' @export
+setMethod("logLik", "PMM2fit",
+          function(object, ...) {
+            res <- object@residuals
+            n   <- length(res)
+            p   <- length(object@coefficients)
+            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+            attr(ll, "df")   <- p   # consistent with the AIC method (sigma not counted)
+            attr(ll, "nobs") <- n
+            class(ll) <- "logLik"
+            ll
+          })
+
+#' Number of observations in PMM2fit object
+#'
+#' @param object PMM2fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Integer number of observations
+#' @export
+setMethod("nobs", "PMM2fit",
+          function(object, ...) {
+            length(object@residuals)
+          })
+
+#' Variance-covariance matrix for PMM2fit object
+#'
+#' Returns the asymptotic covariance matrix \eqn{\sigma^2 g_2 (X^\top X)^{-1}},
+#' where \eqn{g_2 = 1 - c_3^2 / (2 + c_4)} is the PMM2 variance reduction factor.
+#' Under Gaussian errors \eqn{g_2 = 1} and the result equals the OLS covariance matrix.
+#'
+#' @param object PMM2fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Numeric matrix of the same dimension as the number of coefficients
+#' @export
+setMethod("vcov", "PMM2fit",
+          function(object, ...) {
+            X <- attr(object, "model_matrix")
+            if (is.null(X))
+              stop("model_matrix not found; refit the model with lm_pmm2()")
+            vm <- pmm2_variance_matrices(X, object@m2, object@m3, object@m4)
+            V  <- vm$pmm2
+            nms <- names(object@coefficients)
+            if (!is.null(nms) && length(nms) == nrow(V)) {
+              rownames(V) <- nms
+              colnames(V) <- nms
+            }
+            V
+          })
+
+#' Confidence intervals for PMM2fit coefficients
+#'
+#' Computes normal-approximation confidence intervals using the asymptotic
+#' covariance matrix from \code{\link{vcov,PMM2fit-method}}.
+#'
+#' @param object PMM2fit object
+#' @param parm character or integer vector of parameter names/indices to include
+#' @param level confidence level (default 0.95)
+#' @param ... Additional arguments (not used)
+#'
+#' @return Matrix with lower and upper confidence limits
+#' @export
+setMethod("confint", "PMM2fit",
+          function(object, parm, level = 0.95, ...) {
+            cf <- coef(object)
+            se <- sqrt(diag(vcov(object)))
+            a  <- (1 - level) / 2
+            fac <- stats::qnorm(c(a, 1 - a))
+            ci  <- cf + outer(se, fac)
+            colnames(ci) <- paste0(format(100 * c(a, 1 - a), trim = TRUE), " %")
+            if (!missing(parm)) ci <- ci[parm, , drop = FALSE]
+            ci
           })
 
 #' Plot diagnostic plots for PMM2fit object
