@@ -164,3 +164,110 @@ test_that("confint.TS2fit errors for non-AR models with helpful message", {
   fit_ma <- ma_pmm2(ar_series, order = 1)
   expect_error(confint(fit_ma), "ts_pmm2_inference")
 })
+
+# ---- PMM3fit vcov/confint ----------------------------------------------------
+
+# Symmetric platykurtic errors: uniform on [-a, a] has gamma4 = -1.2
+set.seed(2026)
+n_sym   <- 300
+x_sym   <- rnorm(n_sym)
+eps_sym <- runif(n_sym, -2, 2)            # symmetric, gamma4 < 0
+y_sym   <- 0.5 + 1.5 * x_sym + eps_sym
+dat_sym <- data.frame(y = y_sym, x = x_sym)
+
+fit_p3 <- suppressWarnings(lm_pmm3(y ~ x, data = dat_sym))
+
+test_that("vcov.PMM3fit returns a matrix with correct dimensions", {
+  V <- vcov(fit_p3)
+  expect_true(is.matrix(V))
+  expect_equal(dim(V), c(2L, 2L))
+})
+
+test_that("vcov.PMM3fit is symmetric and positive-definite", {
+  V <- vcov(fit_p3)
+  expect_equal(V, t(V), tolerance = 1e-12)
+  expect_true(all(diag(V) > 0))
+  expect_true(det(V) > 0)
+})
+
+test_that("vcov.PMM3fit is smaller than OLS vcov under platykurtic errors", {
+  V_p3  <- vcov(fit_p3)
+  V_ols <- vcov(lm(y ~ x, data = dat_sym))
+  # For uniform errors gamma4 = -1.2, so g3 < 1 and PMM3 variance < OLS variance
+  expect_true(V_p3[2, 2] < V_ols[2, 2])
+})
+
+test_that("vcov.PMM3fit equals g3 * vcov(OLS) under same residuals", {
+  V_p3  <- vcov(fit_p3)
+  V_ols <- vcov(lm(y ~ x, data = dat_sym))
+  # The PMM3 efficiency factor (computed from initial OLS residuals)
+  # must reproduce the OLS-PMM3 ratio on the diagonal.
+  g3 <- fit_p3@g_coefficient
+  expect_equal(V_p3[2, 2] / V_ols[2, 2], g3, tolerance = 0.05)
+})
+
+test_that("vcov.PMM3fit has correct row/col names", {
+  V   <- vcov(fit_p3)
+  nms <- names(coef(fit_p3))
+  expect_equal(rownames(V), nms)
+  expect_equal(colnames(V), nms)
+})
+
+test_that("vcov.PMM3fit errors when model_matrix is missing", {
+  fit_bare <- new("PMM3fit",
+                  coefficients  = c(1, 2),
+                  residuals     = rnorm(10),
+                  m2 = 1, m4 = 3, m6 = 15,
+                  gamma4 = 0, gamma6 = 0,
+                  g_coefficient = 1, kappa = NA_real_,
+                  convergence  = TRUE,
+                  iterations   = 5L,
+                  call         = quote(lm_pmm3(y ~ x)))
+  expect_error(vcov(fit_bare), "model_matrix not found")
+})
+
+test_that("confint.PMM3fit returns a matrix with correct dimensions", {
+  ci <- confint(fit_p3)
+  expect_true(is.matrix(ci))
+  expect_equal(nrow(ci), 2L)
+  expect_equal(ncol(ci), 2L)
+  expect_true(all(ci[, 1] < ci[, 2]))
+})
+
+test_that("confint.PMM3fit 95% CI contains true value", {
+  ci <- confint(fit_p3)
+  expect_true(ci["x", 1] < 1.5 && 1.5 < ci["x", 2])
+})
+
+test_that("confint.PMM3fit level argument changes interval width", {
+  ci99 <- confint(fit_p3, level = 0.99)
+  ci90 <- confint(fit_p3, level = 0.90)
+  expect_true((ci99["x", 2] - ci99["x", 1]) > (ci90["x", 2] - ci90["x", 1]))
+})
+
+# ---- TS3fit vcov/confint (AR only) -------------------------------------------
+
+set.seed(2027)
+ar_sym <- arima.sim(list(ar = 0.6), n = 400,
+                    rand.gen = function(k) runif(k, -2, 2))
+fit_ar3 <- ar_pmm3(ar_sym, order = 1)
+
+test_that("vcov.TS3fit for AR(1) returns 1x1 positive matrix", {
+  V <- vcov(fit_ar3)
+  expect_true(is.matrix(V))
+  expect_equal(dim(V), c(1L, 1L))
+  expect_true(V[1, 1] > 0)
+  expect_equal(rownames(V), "ar1")
+})
+
+test_that("confint.TS3fit for AR(1) contains true value", {
+  ci <- confint(fit_ar3)
+  expect_equal(nrow(ci), 1L)
+  expect_equal(rownames(ci), "ar1")
+  expect_true(ci["ar1", 1] < 0.6 && 0.6 < ci["ar1", 2])
+})
+
+test_that("vcov.TS3fit errors for non-AR PMM3 models", {
+  fit_ma3 <- suppressWarnings(ma_pmm3(ar_sym, order = 1))
+  expect_error(vcov(fit_ma3), "AR models")
+})

@@ -1,26 +1,27 @@
 # pmm2_classes.R - Class hierarchy for PMM2 models
 
-#' Base S4 class for storing PMM2 model results
+#' @include pmm_base_classes.R
+NULL
+
+#' Virtual S4 class for the PMM2 model family
 #'
-#' @slot coefficients numeric vector of estimated parameters
-#' @slot residuals numeric vector of final residuals
+#' Virtual intermediate that inherits common slots (coefficients,
+#' residuals, convergence, iterations, call) from
+#' \code{\linkS4class{PMMfit}} and adds the PMM2-specific central
+#' moments \eqn{m_2, m_3, m_4}. Concrete subclasses are
+#' \code{\linkS4class{PMM2fit}} (regression) and the time-series classes
+#' under \code{\linkS4class{TS2fit}}.
+#'
 #' @slot m2 numeric second central moment of initial residuals
 #' @slot m3 numeric third central moment of initial residuals
 #' @slot m4 numeric fourth central moment of initial residuals
-#' @slot convergence logical or integer code indicating whether algorithm converged
-#' @slot iterations numeric number of iterations performed
-#' @slot call original function call
 #'
 #' @exportClass BasePMM2
 setClass("BasePMM2",
-         slots = c(coefficients = "numeric",
-                   residuals    = "numeric",
-                   m2           = "numeric",
-                   m3           = "numeric",
-                   m4           = "numeric",
-                   convergence  = "logical",
-                   iterations   = "numeric",
-                   call         = "call"))
+         contains = c("PMMfit", "VIRTUAL"),
+         slots = c(m2 = "numeric",
+                   m3 = "numeric",
+                   m4 = "numeric"))
 
 #' S4 class for storing PMM2 regression model results
 #'
@@ -37,28 +38,20 @@ setClass("BasePMM2",
 setClass("PMM2fit",
          contains = "BasePMM2")
 
-#' Base S4 class for storing PMM2 time series model results
+#' S4 class for PMM2 time-series fit results
 #'
-#' @slot coefficients numeric vector of estimated parameters
-#' @slot residuals numeric vector of final residuals
-#' @slot m2 numeric second central moment of initial residuals
-#' @slot m3 numeric third central moment of initial residuals
-#' @slot m4 numeric fourth central moment of initial residuals
-#' @slot convergence logical or integer code indicating whether algorithm converged
-#' @slot iterations numeric number of iterations performed
-#' @slot call original function call
-#' @slot model_type character string indicating model type
-#' @slot intercept numeric value of intercept
-#' @slot original_series numeric vector of original time series
-#' @slot order list of order parameters
+#' Common parent of every PMM2 time-series fit class (AR, MA, ARMA,
+#' ARIMA, and the seasonal SAR/SMA/SARMA/SARIMA subclasses). Inherits
+#' the PMM2-specific central moments from
+#' \code{\linkS4class{BasePMM2}} and the time-series slots
+#' (\code{model_type}, \code{intercept}, \code{original_series},
+#' \code{order}) from \code{\linkS4class{PMMtsfit}}. The diamond
+#' inheritance resolves at \code{\linkS4class{PMMfit}}, which both
+#' branches share as their virtual root.
 #'
 #' @exportClass TS2fit
 setClass("TS2fit",
-         contains = "BasePMM2",
-         slots = c(model_type      = "character",
-                   intercept       = "numeric",
-                   original_series = "numeric",
-                   order           = "list"))
+         contains = c("BasePMM2", "PMMtsfit"))
 
 #' S4 class for storing PMM2 AR model results
 #'

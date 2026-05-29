@@ -197,63 +197,32 @@ setMethod("fitted", "PMM2fit",
             fitted_values(object, data)
           })
 
-#' Calculate AIC for PMM2fit object
-#'
-#' @param object PMM2fit object
-#' @param ... Additional arguments (not used)
-#' @param k Penalty per parameter to be used; default is 2
-#'
-#' @return AIC value
-#' @export
-setMethod("AIC", "PMM2fit",
-          function(object, ..., k = 2) {
-            res <- object@residuals
-            n <- length(res)
-            p <- length(object@coefficients)
-
-            # Approximate log-likelihood
-            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-
-            # AIC
-            -2 * ll + k * p
-          })
-
-#' Calculate BIC for PMM2fit object
-#'
-#' @param object PMM2fit object
-#' @param ... Additional arguments (not used)
-#'
-#' @return BIC value
-#' @export
-setMethod("BIC", "PMM2fit",
-          function(object, ...) {
-            res <- object@residuals
-            n <- length(res)
-            p <- length(object@coefficients)
-            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            -2 * ll + log(n) * p
-          })
+# AIC and BIC for PMM2fit are obtained via the default dispatch through
+# logLik(), which returns a "logLik" object with df and nobs attributes.
+# See setMethod("logLik", "PMM2fit", ...) below.
 
 #' Extract log-likelihood from PMM2fit object
 #'
-#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#' Returns a Gaussian approximate log-likelihood. Defined as an S3 method
+#' so that \code{stats::AIC} and \code{stats::BIC} (which dispatch
+#' \code{logLik} via \code{UseMethod}) work without explicit S4 methods.
 #'
 #' @param object PMM2fit object
 #' @param ... Additional arguments (not used)
 #'
 #' @return Object of class \code{logLik}
+#' @method logLik PMM2fit
 #' @export
-setMethod("logLik", "PMM2fit",
-          function(object, ...) {
-            res <- object@residuals
-            n   <- length(res)
-            p   <- length(object@coefficients)
-            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            attr(ll, "df")   <- p   # consistent with the AIC method (sigma not counted)
-            attr(ll, "nobs") <- n
-            class(ll) <- "logLik"
-            ll
-          })
+logLik.PMM2fit <- function(object, ...) {
+  res <- object@residuals
+  n   <- length(res)
+  p   <- length(object@coefficients)
+  ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+  attr(ll, "df")   <- p   # sigma not counted, consistent with AIC.default
+  attr(ll, "nobs") <- n
+  class(ll) <- "logLik"
+  ll
+}
 
 #' Number of observations in PMM2fit object
 #'

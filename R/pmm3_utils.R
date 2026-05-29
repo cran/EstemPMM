@@ -73,6 +73,49 @@ pmm3_variance_factor <- function(m2, m4, m6) {
   list(gamma4 = gamma4, gamma6 = gamma6, g3 = g3)
 }
 
+#' Calculate theoretical variance matrices for OLS and PMM3
+#'
+#' Returns the asymptotic covariance matrices
+#' \eqn{V_{\mathrm{OLS}} = m_2 (X^\top X)^{-1}} and
+#' \eqn{V_{\mathrm{PMM3}} = g_3\, m_2 (X^\top X)^{-1}} where
+#' \eqn{g_3 = 1 - \gamma_4^2 / (6 + 9\gamma_4 + \gamma_6)}.
+#'
+#' The PMM3 formula is the symmetric-platykurtic specialisation of
+#' Kunchenko's polynomial-maximisation framework (s = 3); see
+#' \code{notes/pmm3_vcov_derivation.md} for the derivation and
+#' Zabolotnii et al. (2018, 2022, 2023) for the general method.
+#' Under Gaussian errors \eqn{g_3 = 1} and the matrix coincides with the
+#' OLS covariance.
+#'
+#' @param X Design matrix with column of ones for the intercept.
+#' @param m2,m4,m6 Second, fourth, and sixth central moments computed
+#'   from the initial OLS residuals.
+#'
+#' @return A list with components \code{ols} (OLS covariance matrix),
+#'   \code{pmm3} (PMM3 covariance matrix), and the scalar efficiency
+#'   diagnostics \code{gamma4}, \code{gamma6}, \code{g3}.
+#'
+#' @export
+pmm3_variance_matrices <- function(X, m2, m4, m6) {
+  X <- as.matrix(X)
+  XtX <- crossprod(X)
+  V_ols <- tryCatch({
+    m2 * solve(XtX)
+  }, error = function(e) {
+    stop("Failed to invert matrix X'X: ", conditionMessage(e), call. = FALSE)
+  })
+
+  vf <- pmm3_variance_factor(m2, m4, m6)
+  if (is.na(vf$g3)) {
+    V_pmm3 <- matrix(NA_real_, nrow = nrow(V_ols), ncol = ncol(V_ols))
+  } else {
+    V_pmm3 <- vf$g3 * V_ols
+  }
+
+  list(ols = V_ols, pmm3 = V_pmm3,
+       gamma4 = vf$gamma4, gamma6 = vf$gamma6, g3 = vf$g3)
+}
+
 #' Compute sixth-order cumulant coefficient gamma6
 #'
 #' Calculates \eqn{\gamma_6 = m_6/m_2^3 - 15 m_4/m_2^2 + 30} from a numeric

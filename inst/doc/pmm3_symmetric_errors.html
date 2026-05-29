@@ -12,7 +12,7 @@
 
 <meta name="author" content="Serhii Zabolotnii" />
 
-<meta name="date" content="2026-05-14" />
+<meta name="date" content="2026-05-29" />
 
 <title>PMM3: Linear Regression for Symmetric Platykurtic Errors</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">PMM3: Linear Regression for Symmetric
 Platykurtic Errors</h1>
 <h4 class="author">Serhii Zabolotnii</h4>
-<h4 class="date">2026-05-14</h4>
+<h4 class="date">2026-05-29</h4>
 
 
 
@@ -461,9 +461,11 @@ kurtosis is clearly negative.</p>
 <div id="automatic-method-selection" class="section level3">
 <h3>Automatic Method Selection</h3>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>recommendation <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_ols)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt;   n = 300 | gamma3 = +0.026 | gamma4 = -1.183</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9992 | g3(PMM3) = 0.3083</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.026 &lt; 0.3 (symmetric) and gamma4 = -1.183 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 69.2%.</span></span></code></pre></div>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;   n = 300 | gamma3 = +0.026 | gamma4 = -1.183</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9992 | g3(PMM3) = 0.3083</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM3 (expected variance reduction: 69.2%)</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.026 &lt; 0.3 (symmetric) and gamma4 = -1.183 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 69.2%.</span></span></code></pre></div>
 </div>
 <div id="fit-pmm3" class="section level3">
 <h3>Fit PMM3</h3>
@@ -602,9 +604,11 @@ current PMM3 implementation targets symmetric platykurtic residuals, so
 <span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a></span>
 <span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co"># Dispatch recommendation</span></span>
 <span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>dispatch_auto <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_auto)</span>
-<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt;   n = 392 | gamma3 = +0.218 | gamma4 = +1.299</span></span>
-<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9856 | g3(PMM3) = 0.8951</span></span>
-<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; gamma3 = 0.218, gamma4 = 1.299: near-Gaussian residuals. No PMM advantage expected. Use OLS.</span></span></code></pre></div>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt;   n = 392 | gamma3 = +0.218 | gamma4 = +1.299</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9856 | g3(PMM3) = 0.8951</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt;   Selected: OLS (expected variance reduction: 0.0%)</span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt;   Reason: gamma3 = 0.218, gamma4 = 1.299: near-Gaussian residuals. No PMM advantage expected. Use OLS.</span></span></code></pre></div>
 </div>
 <div id="dispatcher-recommendation" class="section level3">
 <h3>Dispatcher Recommendation</h3>
@@ -653,17 +657,19 @@ appropriate instead.</p>
 <span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a></span>
 <span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co"># Dispatch</span></span>
 <span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>dispatch_accel <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_accel)</span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;   n = 398 | gamma3 = +0.497 | gamma4 = -0.330</span></span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.8519 | g3(PMM3) = 0.9779</span></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.497 &gt; 0.3 and g2 = 0.852 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (14.8% reduction).</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co"># Compare</span></span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>fit_accel_pmm2 <span class="ot">&lt;-</span> <span class="fu">lm_pmm2</span>(mpg <span class="sc">~</span> acceleration, <span class="at">data =</span> auto_mpg, <span class="at">na.action =</span> na.omit)</span>
-<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>vf2_accel <span class="ot">&lt;-</span> <span class="fu">pmm2_variance_factor</span>(fit_accel_pmm2<span class="sc">@</span>m2, fit_accel_pmm2<span class="sc">@</span>m3, fit_accel_pmm2<span class="sc">@</span>m4)</span>
-<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">PMM2 g2 =&quot;</span>, vf2_accel<span class="sc">$</span>g2,</span>
-<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>    <span class="st">&quot; (improvement:&quot;</span>, <span class="fu">round</span>((<span class="dv">1</span> <span class="sc">-</span> vf2_accel<span class="sc">$</span>g2) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>), <span class="st">&quot;%)</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt; PMM2 g2 =  (improvement:  %)</span></span></code></pre></div>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;   n = 398 | gamma3 = +0.497 | gamma4 = -0.330</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.8519 | g3(PMM3) = 0.9779</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM2 (expected variance reduction: 14.8%)</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.497 &gt; 0.3 and g2 = 0.852 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (14.8% reduction).</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co"># Compare</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>fit_accel_pmm2 <span class="ot">&lt;-</span> <span class="fu">lm_pmm2</span>(mpg <span class="sc">~</span> acceleration, <span class="at">data =</span> auto_mpg, <span class="at">na.action =</span> na.omit)</span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>vf2_accel <span class="ot">&lt;-</span> <span class="fu">pmm2_variance_factor</span>(fit_accel_pmm2<span class="sc">@</span>m2, fit_accel_pmm2<span class="sc">@</span>m3, fit_accel_pmm2<span class="sc">@</span>m4)</span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">PMM2 g2 =&quot;</span>, vf2_accel<span class="sc">$</span>g2,</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>    <span class="st">&quot; (improvement:&quot;</span>, <span class="fu">round</span>((<span class="dv">1</span> <span class="sc">-</span> vf2_accel<span class="sc">$</span>g2) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>), <span class="st">&quot;%)</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; PMM2 g2 =  (improvement:  %)</span></span></code></pre></div>
 <p>This demonstrates how <code>pmm_dispatch()</code> guides users to the
 correct method: <strong>PMM3 for symmetric platykurtic</strong>
 residuals, <strong>PMM2 for asymmetric</strong> residuals.</p>
@@ -848,21 +854,27 @@ appear flatter than a bell curve, often with “chopped” tails</li>
 <h3>Automatic Method Selection</h3>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Symmetric platykurtic errors → PMM3</span></span>
 <span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">pmm_dispatch</span>(<span class="fu">runif</span>(<span class="dv">500</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>))</span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = -0.026 | gamma4 = -1.272</span></span>
-<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9990 | g3(PMM3) = 0.2438</span></span>
-<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.026 &lt; 0.3 (symmetric) and gamma4 = -1.272 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 75.6%.</span></span>
-<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a></span>
-<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="co"># Asymmetric errors → PMM2</span></span>
-<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a><span class="fu">pmm_dispatch</span>(<span class="fu">rexp</span>(<span class="dv">500</span>) <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = +2.351 | gamma4 = +8.946</span></span>
-<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.4953 | g3(PMM3) = 0.7901</span></span>
-<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 2.351 &gt; 1.0: strong asymmetry detected. PMM2 expected to reduce variance by 50.5%.</span></span>
-<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a></span>
-<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co"># Gaussian errors → OLS</span></span>
-<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="fu">pmm_dispatch</span>(<span class="fu">rnorm</span>(<span class="dv">500</span>))</span>
-<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = -0.001 | gamma4 = +0.007</span></span>
-<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 1.0000 | g3(PMM3) = 1.0000</span></span>
-<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; gamma3 = -0.001, gamma4 = 0.007: near-Gaussian residuals. No PMM advantage expected. Use OLS.</span></span></code></pre></div>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = -0.026 | gamma4 = -1.272</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9990 | g3(PMM3) = 0.2438</span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM3 (expected variance reduction: 75.6%)</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.026 &lt; 0.3 (symmetric) and gamma4 = -1.272 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 75.6%.</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="co"># Asymmetric errors → PMM2</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="fu">pmm_dispatch</span>(<span class="fu">rexp</span>(<span class="dv">500</span>) <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = +2.351 | gamma4 = +8.946</span></span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.4953 | g3(PMM3) = 0.7901</span></span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM2 (expected variance reduction: 50.5%)</span></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 2.351 &gt; 1.0: strong asymmetry detected. PMM2 expected to reduce variance by 50.5%.</span></span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a><span class="co"># Gaussian errors → OLS</span></span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a><span class="fu">pmm_dispatch</span>(<span class="fu">rnorm</span>(<span class="dv">500</span>))</span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb19-20"><a href="#cb19-20" tabindex="-1"></a><span class="co">#&gt;   n = 500 | gamma3 = -0.001 | gamma4 = +0.007</span></span>
+<span id="cb19-21"><a href="#cb19-21" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 1.0000 | g3(PMM3) = 1.0000</span></span>
+<span id="cb19-22"><a href="#cb19-22" tabindex="-1"></a><span class="co">#&gt;   Selected: OLS (expected variance reduction: 0.0%)</span></span>
+<span id="cb19-23"><a href="#cb19-23" tabindex="-1"></a><span class="co">#&gt;   Reason: gamma3 = -0.001, gamma4 = 0.007: near-Gaussian residuals. No PMM advantage expected. Use OLS.</span></span></code></pre></div>
 </div>
 <div id="testing-symmetry" class="section level3">
 <h3>Testing Symmetry</h3>

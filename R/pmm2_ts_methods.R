@@ -950,24 +950,29 @@ compare_sar_methods <- function(x,
 
 #' Extract log-likelihood from TS2fit object
 #'
-#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#' Returns a Gaussian approximate log-likelihood. Non-finite residuals
+#' (which can arise from differencing or burn-in) are dropped so that
+#' AIC/BIC dispatched through this method match the convention of
+#' \code{compare_ts_methods()}. Defined as an S3 method so that
+#' \code{stats::AIC} and \code{stats::BIC} dispatch correctly via
+#' \code{UseMethod("logLik")}.
 #'
 #' @param object TS2fit (or subclass) object
 #' @param ... Additional arguments (not used)
 #'
 #' @return Object of class \code{logLik}
+#' @method logLik TS2fit
 #' @export
-setMethod("logLik", "TS2fit",
-          function(object, ...) {
-            res <- object@residuals
-            n   <- length(res)
-            p   <- length(object@coefficients)
-            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            attr(ll, "df")   <- p   # consistent with compare_ts_methods AIC convention
-            attr(ll, "nobs") <- n
-            class(ll) <- "logLik"
-            ll
-          })
+logLik.TS2fit <- function(object, ...) {
+  res <- object@residuals[is.finite(object@residuals)]
+  n   <- length(res)
+  p   <- length(object@coefficients)
+  ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+  attr(ll, "df")   <- p
+  attr(ll, "nobs") <- n
+  class(ll) <- "logLik"
+  ll
+}
 
 #' Number of observations in TS2fit object
 #'
@@ -1042,33 +1047,6 @@ setMethod("confint", "TS2fit",
             ci
           })
 
-#' AIC for TS2fit objects
-#'
-#' @param object TS2fit (or subclass) object
-#' @param ... Ignored
-#' @param k Penalty per parameter (default 2)
-#' @return Numeric AIC value
-#' @export
-setMethod("AIC", "TS2fit",
-          function(object, ..., k = 2) {
-            res <- object@residuals[is.finite(object@residuals)]
-            n   <- length(res)
-            p   <- length(object@coefficients)
-            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            -2 * ll + k * p
-          })
-
-#' BIC for TS2fit objects
-#'
-#' @param object TS2fit (or subclass) object
-#' @param ... Additional arguments (not used)
-#' @return Numeric BIC value
-#' @export
-setMethod("BIC", "TS2fit",
-          function(object, ...) {
-            res <- object@residuals[is.finite(object@residuals)]
-            n   <- length(res)
-            p   <- length(object@coefficients)
-            ll  <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            -2 * ll + log(n) * p
-          })
+# AIC and BIC for TS2fit are obtained via the default dispatch through
+# logLik(), which returns a "logLik" object with df and nobs attributes
+# computed from the finite residuals only. See setMethod("logLik", "TS2fit", ...).

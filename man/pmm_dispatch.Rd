@@ -24,7 +24,9 @@ pmm_dispatch(
 \item{verbose}{logical: print decision reasoning (default TRUE)}
 }
 \value{
-A list with components:
+An object of S3 class \code{"PMMdispatch"}: a list with
+components accessible via \code{$} and a dedicated \code{print}
+method. Components:
 \item{method}{Character: "OLS", "PMM2", or "PMM3"}
 \item{gamma3}{Sample skewness}
 \item{gamma4}{Sample excess kurtosis}

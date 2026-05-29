@@ -1,46 +1,20 @@
-# pmm3_ts_classes.R - S4 class hierarchy for PMM3 time series models
+# pmm3_ts_classes.R - S4 class hierarchy for PMM3 time-series models.
 
-#' Base S4 class for PMM3 time series model results
+#' @include pmm_base_classes.R pmm3_classes.R
+NULL
+
+#' S4 class for PMM3 time-series fit results
 #'
-#' Stores results from time series estimation using PMM3 (S=3).
-#' Designed for symmetric platykurtic innovations. Does NOT inherit
-#' from BasePMM2 or TS2fit.
-#'
-#' @slot coefficients numeric vector of estimated parameters
-#' @slot residuals numeric vector of final residuals/innovations
-#' @slot m2 numeric second central moment of initial residuals
-#' @slot m4 numeric fourth central moment of initial residuals
-#' @slot m6 numeric sixth central moment of initial residuals
-#' @slot gamma4 numeric excess kurtosis coefficient
-#' @slot gamma6 numeric sixth-order cumulant coefficient
-#' @slot g_coefficient numeric theoretical variance reduction factor g3
-#' @slot kappa numeric moment ratio used in NR solver
-#' @slot convergence logical whether algorithm converged
-#' @slot iterations numeric number of iterations performed
-#' @slot call original function call
-#' @slot model_type character string indicating model type
-#' @slot intercept numeric intercept value
-#' @slot original_series numeric vector of original time series
-#' @slot order list of order parameters
+#' Common parent of every PMM3 time-series fit class (ARPMM3, MAPMM3,
+#' ARMAPMM3, ARIMAPMM3). Inherits the PMM3-specific moments and cumulant
+#' coefficients from \code{\linkS4class{BasePMM3}} and the time-series
+#' slots from \code{\linkS4class{PMMtsfit}}. The diamond inheritance
+#' resolves at \code{\linkS4class{PMMfit}}, which both branches share
+#' as their virtual root.
 #'
 #' @exportClass TS3fit
 setClass("TS3fit",
-         slots = c(coefficients    = "numeric",
-                   residuals       = "numeric",
-                   m2              = "numeric",
-                   m4              = "numeric",
-                   m6              = "numeric",
-                   gamma4          = "numeric",
-                   gamma6          = "numeric",
-                   g_coefficient   = "numeric",
-                   kappa           = "numeric",
-                   convergence     = "logical",
-                   iterations      = "numeric",
-                   call            = "call",
-                   model_type      = "character",
-                   intercept       = "numeric",
-                   original_series = "numeric",
-                   order           = "list"))
+         contains = c("BasePMM3", "PMMtsfit"))
 
 #' S4 class for PMM3 AR model results
 #' @exportClass ARPMM3

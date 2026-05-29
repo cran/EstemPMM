@@ -2,6 +2,10 @@
 
 #' Bootstrap inference for PMM2 fit
 #'
+#' Residual-bootstrap standard errors, p-values, and confidence
+#' intervals for a PMM2 regression fit. Three CI methods are
+#' available (see \code{ci_method}).
+#'
 #' @param object object of class PMM2fit
 #' @param formula the same formula that was used initially
 #' @param data data frame that was used initially
@@ -9,17 +13,42 @@
 #' @param seed (optional) for reproducibility
 #' @param parallel logical, whether to use parallel computing
 #' @param cores number of cores to use for parallel computing, defaults to auto-detect
+#' @param ci_method character: confidence-interval method.
+#'   \describe{
+#'     \item{"normal" (default)}{Symmetric Wald interval
+#'       \eqn{\hat\beta \pm z_{1-\alpha/2}\,\widehat{\mathrm{SE}}}
+#'       using the bootstrap standard deviation as
+#'       \eqn{\widehat{\mathrm{SE}}}. Always contains the point
+#'       estimate and is robust to mild finite-sample bias of the
+#'       bootstrap distribution.}
+#'     \item{"percentile"}{Empirical 2.5/97.5 percentiles of the
+#'       bootstrap re-estimates (Efron's original percentile method).
+#'       Not centred on the point estimate when the bootstrap
+#'       distribution is biased.}
+#'     \item{"basic"}{Davison & Hinkley (1997) basic/pivotal interval
+#'       \eqn{[2\hat\beta - q_{1-\alpha/2},\;2\hat\beta - q_{\alpha/2}]},
+#'       reflecting the percentile bracket about the point estimate.}
+#'   }
+#'   The returned object includes a \code{bias} column
+#'   (\eqn{\mathrm{mean}(\text{boot}) - \hat\beta}) so users can
+#'   detect finite-sample bias and switch CI methods if desired.
 #'
-#' @return data.frame with columns: Estimate, Std.Error, t.value, p.value
+#' @return data.frame with columns: Estimate, Std.Error, bias,
+#'   t.value, p.value, conf.low, conf.high.
 #' @export
-pmm2_inference <- function(object, formula, data, B=200, seed=NULL,
-                           parallel=FALSE, cores=NULL) {
+pmm2_inference <- function(object, formula, data, B = 200, seed = NULL,
+                           parallel = FALSE, cores = NULL,
+                           ci_method = c("normal", "percentile", "basic")) {
+  ci_method <- match.arg(ci_method)
   # Set seed for reproducibility if provided
   if(!is.null(seed)) set.seed(seed)
 
-  # Extract coefficients and residuals
+  # Extract coefficients and residuals; centre residuals before
+  # resampling so the simulated responses are not shifted by any
+  # small non-zero mean introduced during the PMM iteration.
   coefs <- object@coefficients
   res   <- object@residuals
+  res   <- res - mean(res, na.rm = TRUE)
 
   # Validate input data
   if(B < 10) {
@@ -149,30 +178,50 @@ pmm2_inference <- function(object, formula, data, B=200, seed=NULL,
   cov_mat <- cov(boot_est)
   est <- coefs
   se  <- sqrt(diag(cov_mat))
+  bias <- colMeans(boot_est, na.rm = TRUE) - est
 
   # Compute t-values and p-values
   t_val <- est / se
-  # For large samples use normal approximation
-  p_val <- 2 * (1 - pnorm(abs(t_val)))
+  # Two-tailed p-value via the upper tail (numerically stable for large |t_val|).
+  p_val <- 2 * pnorm(abs(t_val), lower.tail = FALSE)
 
-  # Create output data frame
+  # Bootstrap quantiles (always computed; used by percentile/basic methods)
+  ci_pct <- t(apply(boot_est, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
+
+  conf <- .pmm_bootstrap_ci(est, se, ci_pct, ci_method)
+
   out <- data.frame(
     Estimate  = est,
     Std.Error = se,
+    bias      = bias,
     t.value   = t_val,
-    p.value   = p_val
+    p.value   = p_val,
+    conf.low  = conf$low,
+    conf.high = conf$high
   )
   rownames(out) <- names(est)
 
-  # Compute confidence intervals
-  ci <- t(apply(boot_est, 2, quantile, probs = c(0.025, 0.975)))
-  colnames(ci) <- c("2.5%", "97.5%")
-
-  # Add confidence intervals to output
-  out$conf.low <- ci[, "2.5%"]
-  out$conf.high <- ci[, "97.5%"]
-
   return(out)
+}
+
+# Internal: assemble confidence interval columns from the three
+# supported methods. `ci_pct` is a matrix with columns "2.5%" and
+# "97.5%" containing the bootstrap percentiles for each coefficient.
+.pmm_bootstrap_ci <- function(est, se, ci_pct, method) {
+  switch(method,
+    normal = list(
+      low  = est - stats::qnorm(0.975) * se,
+      high = est + stats::qnorm(0.975) * se
+    ),
+    percentile = list(
+      low  = unname(ci_pct[, "2.5%"]),
+      high = unname(ci_pct[, "97.5%"])
+    ),
+    basic = list(
+      low  = 2 * est - unname(ci_pct[, "97.5%"]),
+      high = 2 * est - unname(ci_pct[, "2.5%"])
+    )
+  )
 }
 
 #' Plot bootstrap distributions for PMM2 fit
@@ -287,8 +336,14 @@ plot_pmm2_bootstrap <- function(object, coefficients = NULL) {
 
 #' Bootstrap inference for PMM2 time series models
 #'
+#' Residual- or block-bootstrap standard errors and confidence
+#' intervals for PMM2 time-series fits. Block bootstrap can exhibit
+#' substantial finite-sample bias for AR coefficients near the
+#' stationarity boundary; see \code{ci_method} and the returned
+#' \code{bias} column for diagnostics.
+#'
 #' @param object object of class TS2fit
-#' @param x (optional) original time series; if NULL, uses object@original_series
+#' @param x (optional) original time series; if NULL, uses \code{object@original_series}
 #' @param B number of bootstrap replications
 #' @param seed (optional) for reproducibility
 #' @param block_length block length for block bootstrap; if NULL, uses heuristic value
@@ -296,12 +351,23 @@ plot_pmm2_bootstrap <- function(object, coefficients = NULL) {
 #' @param parallel logical, whether to use parallel computing
 #' @param cores number of cores for parallel computing
 #' @param debug logical, whether to output additional diagnostic information
+#' @param ci_method character: confidence-interval method. See
+#'   \code{\link{pmm2_inference}} for the full description. The
+#'   default \code{"normal"} returns a Wald interval centred on the
+#'   point estimate, which is robust to the moderate downward bias
+#'   that block bootstrap induces for AR coefficients of strongly
+#'   persistent series. Use \code{"percentile"} for Efron's classical
+#'   percentile interval or \code{"basic"} for the Davison & Hinkley
+#'   (1997) pivotal interval.
 #'
-#' @return data.frame with columns: Estimate, Std.Error, t.value, p.value
+#' @return data.frame with columns: Estimate, Std.Error, bias,
+#'   t.value, p.value, conf.low, conf.high.
 #' @export
 ts_pmm2_inference <- function(object, x = NULL, B = 200, seed = NULL,
                               block_length = NULL, method = c("residual", "block"),
-                              parallel = FALSE, cores = NULL, debug = FALSE) {
+                              parallel = FALSE, cores = NULL, debug = FALSE,
+                              ci_method = c("normal", "percentile", "basic")) {
+  ci_method <- match.arg(ci_method)
   # Check object class
   if (!inherits(object, "TS2fit")) {
     stop("Object must be of class 'TS2fit'")
@@ -336,9 +402,12 @@ ts_pmm2_inference <- function(object, x = NULL, B = 200, seed = NULL,
     x <- object@original_series
   }
 
-  # Extract coefficients and residuals
+  # Extract coefficients and residuals; centre residuals before
+  # resampling so that the simulated series are not shifted by a
+  # small non-zero mean introduced by the PMM iteration.
   coefs <- object@coefficients
   res <- object@residuals
+  res <- res - mean(res, na.rm = TRUE)
 
   if(debug) {
     cat("Original series size:", length(x), "\n")
@@ -594,36 +663,31 @@ ts_pmm2_inference <- function(object, x = NULL, B = 200, seed = NULL,
   cov_mat <- cov(boot_est, use = "pairwise.complete.obs")
   est <- coefs
   se <- sqrt(diag(cov_mat))
+  bias <- colMeans(boot_est, na.rm = TRUE) - est
 
   # Compute t-values and p-values
   t_val <- est / se
-  p_val <- 2 * (1 - pnorm(abs(t_val)))
+  # Two-tailed p-value via the upper tail (numerically stable for large |t_val|).
+  p_val <- 2 * pnorm(abs(t_val), lower.tail = FALSE)
 
-  # Create output data frame
+  # Bootstrap percentiles (used by percentile/basic CI methods)
+  ci_pct <- t(apply(boot_est, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
+  conf <- .pmm_bootstrap_ci(est, se, ci_pct, ci_method)
+
+  param_names <- character(0)
+  if (ar_order > 0) param_names <- c(param_names, paste0("ar", seq_len(ar_order)))
+  if (ma_order > 0) param_names <- c(param_names, paste0("ma", seq_len(ma_order)))
+
   out <- data.frame(
-    Estimate = est,
+    Estimate  = est,
     Std.Error = se,
-    t.value = t_val,
-    p.value = p_val
+    bias      = bias,
+    t.value   = t_val,
+    p.value   = p_val,
+    conf.low  = conf$low,
+    conf.high = conf$high
   )
-
-  # Add names for AR and MA parameters
-  param_names <- c()
-  if (ar_order > 0) {
-    param_names <- c(param_names, paste0("ar", 1:ar_order))
-  }
-  if (ma_order > 0) {
-    param_names <- c(param_names, paste0("ma", 1:ma_order))
-  }
   rownames(out) <- param_names
-
-  # Compute confidence intervals
-  ci <- t(apply(boot_est, 2, quantile, probs = c(0.025, 0.975), na.rm = TRUE))
-  colnames(ci) <- c("2.5%", "97.5%")
-
-  # Add confidence intervals to output
-  out$conf.low <- ci[, "2.5%"]
-  out$conf.high <- ci[, "97.5%"]
 
   return(out)
 }

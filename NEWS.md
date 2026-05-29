@@ -1,5 +1,105 @@
 # EstemPMM News
 
+## Version 0.4.0 (2026-05-28)
+
+### Major: revised class hierarchy and unified user interface
+
+Substantial refactor in response to the JSS reviewer report (May 2026)
+on the accompanying manuscript. The package methodology is unchanged;
+the user interface and S4 class graph are reorganised to address the
+reviewer's concerns about a flat class structure, scattered top-level
+functions, and missing methods.
+
+#### New unified API (primary going forward)
+
+- **`pmm_lm(formula, data, method = c("auto", "pmm2", "pmm3"), ...)`** --
+  primary entry point for non-Gaussian linear regression. `method = "auto"`
+  consults `pmm_dispatch()` on the OLS residuals and forwards to the
+  recommended polynomial order.
+- **`pmm_ar()`**, **`pmm_ma()`**, **`pmm_arma()`**, **`pmm_arima()`**,
+  **`pmm_sarima()`** -- unified time-series entry points with a
+  `method = c("pmm2", "pmm3")` selector.
+- The older `lm_pmm2()` / `lm_pmm3()` / `ar_pmm2()` / `arima_pmm3()` /
+  ... functions remain available without runtime warnings, but are now
+  documented as the lower-level fitters that the unified `pmm_*` family
+  wraps. Runtime deprecation warnings are scheduled for 0.4.1; full
+  removal for 0.5.0.
+
+#### New virtual S4 class hierarchy
+
+- **`PMMfit`** (virtual root) -- holds the slots common to every fit
+  object: `coefficients`, `residuals`, `convergence`, `iterations`,
+  `call`.
+- **`BasePMM2`** (virtual; existing) -- adds PMM2-family moments
+  `m2`, `m3`, `m4`. Now inherits from `PMMfit`.
+- **`BasePMM3`** (virtual; new) -- adds PMM3-family moments and
+  cumulant coefficients `m2`, `m4`, `m6`, `gamma4`, `gamma6`,
+  `g_coefficient`, `kappa`.
+- **`PMMtsfit`** (virtual; new) -- adds the time-series slots
+  `model_type`, `intercept`, `original_series`, `order`.
+- `TS2fit` and `TS3fit` now inherit from both their respective
+  `BasePMM*` and from `PMMtsfit` via S4 multiple inheritance, with the
+  diamond resolving at `PMMfit`.
+
+#### New methods on existing classes
+
+- **`show()`** methods for `PMM2fit`, `PMM3fit`, `TS2fit`, `TS3fit`
+  replace the default S4 slot-dump display with an `lm()`-style header
+  (call + coefficients + convergence/iteration footer).
+- **`vcov()`** and **`confint()`** are now provided for `PMM3fit` and
+  for AR-model `TS3fit` objects, mirroring the PMM2 implementations.
+  The PMM3 asymptotic covariance formula `V = g_3 sigma^2 (X'X)^{-1}`
+  with `g_3 = 1 - gamma_4^2 / (6 + 9*gamma_4 + gamma_6)` is derived in
+  `notes/pmm3_vcov_derivation.md` and validated by the Monte Carlo
+  script in the accompanying JSS replication bundle (max relative error
+  < 3% at n = 500).
+- New helper **`pmm3_variance_matrices(X, m2, m4, m6)`** returns both
+  the OLS and PMM3 asymptotic covariance matrices.
+
+#### S4/S3 cleanup
+
+- The custom `setMethod("AIC", ...)` and `setMethod("BIC", ...)`
+  methods for `PMM2fit`, `PMM3fit`, `TS2fit`, and `TS3fit` are
+  **removed**. `AIC()` and `BIC()` now dispatch through the generic
+  S3 mechanism using the existing `logLik()` methods, which are
+  converted from `setMethod()` to S3 (`logLik.PMM2fit` etc.) so that
+  `stats::AIC.default`'s internal `UseMethod("logLik")` finds them.
+  Numerical values are identical to the removed custom methods.
+- `logLik.TS2fit()` now filters non-finite residuals to match the AIC
+  convention previously used by the removed `AIC.TS2fit` method.
+
+#### New `PMMdispatch` S3 class
+
+- `pmm_dispatch()` now returns an S3 object of class `PMMdispatch`
+  with dedicated `print`, `summary`, and `format` methods instead of a
+  bare list. Field access via `$` is preserved for back-compat.
+
+#### Numerical / code-quality fixes
+
+- `pmm2_inference()` and `ts_pmm2_inference()` now compute two-tailed
+  p-values via `2 * pnorm(abs(t), lower.tail = FALSE)` instead of the
+  numerically less stable `2 * (1 - pnorm(abs(t)))`. The result is
+  identical for moderate t-values; the rewrite avoids loss of precision
+  at extreme `|t|`.
+- Both inference functions now centre the residuals before
+  resampling so that any small non-zero residual mean introduced by
+  the PMM iteration does not shift the simulated responses.
+- Both inference functions gained a `ci_method` argument with three
+  choices: `"normal"` (the new default; symmetric Wald interval
+  using the bootstrap standard deviation, always centred on the
+  point estimate), `"percentile"` (the previous default; Efron's
+  empirical percentile interval), and `"basic"` (Davison & Hinkley
+  1997 pivotal interval). The returned data frame now also carries
+  a `bias` column equal to `mean(boot) - estimate` so users can see
+  when a particular method exhibits finite-sample bias -- this is
+  especially relevant for block bootstrap on AR coefficients near
+  the stationarity boundary, where the percentile interval can
+  drift away from the point estimate.
+- Explicit `importFrom(methods, show)` so the new `show()` methods
+  load cleanly from a fresh namespace.
+
+---
+
 ## Version 0.3.1 (2026-04-06)
 
 ### CRAN Resubmission

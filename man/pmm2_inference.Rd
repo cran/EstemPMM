@@ -11,7 +11,8 @@ pmm2_inference(
   B = 200,
   seed = NULL,
   parallel = FALSE,
-  cores = NULL
+  cores = NULL,
+  ci_method = c("normal", "percentile", "basic")
 )
 }
 \arguments{
@@ -28,10 +29,33 @@ pmm2_inference(
 \item{parallel}{logical, whether to use parallel computing}
 
 \item{cores}{number of cores to use for parallel computing, defaults to auto-detect}
+
+\item{ci_method}{character: confidence-interval method.
+\describe{
+\item{"normal" (default)}{Symmetric Wald interval
+\eqn{\hat\beta \pm z_{1-\alpha/2}\,\widehat{\mathrm{SE}}}
+using the bootstrap standard deviation as
+\eqn{\widehat{\mathrm{SE}}}. Always contains the point
+estimate and is robust to mild finite-sample bias of the
+bootstrap distribution.}
+\item{"percentile"}{Empirical 2.5/97.5 percentiles of the
+bootstrap re-estimates (Efron's original percentile method).
+Not centred on the point estimate when the bootstrap
+distribution is biased.}
+\item{"basic"}{Davison & Hinkley (1997) basic/pivotal interval
+\eqn{[2\hat\beta - q_{1-\alpha/2},\;2\hat\beta - q_{\alpha/2}]},
+reflecting the percentile bracket about the point estimate.}
+}
+The returned object includes a \code{bias} column
+(\eqn{\mathrm{mean}(\text{boot}) - \hat\beta}) so users can
+detect finite-sample bias and switch CI methods if desired.}
 }
 \value{
-data.frame with columns: Estimate, Std.Error, t.value, p.value
+data.frame with columns: Estimate, Std.Error, bias,
+t.value, p.value, conf.low, conf.high.
 }
 \description{
-Bootstrap inference for PMM2 fit
+Residual-bootstrap standard errors, p-values, and confidence
+intervals for a PMM2 regression fit. Three CI methods are
+available (see \code{ci_method}).
 }

@@ -3,45 +3,12 @@
 \docType{class}
 \name{TS3fit-class}
 \alias{TS3fit-class}
-\title{Base S4 class for PMM3 time series model results}
+\title{S4 class for PMM3 time-series fit results}
 \description{
-Stores results from time series estimation using PMM3 (S=3).
-Designed for symmetric platykurtic innovations. Does NOT inherit
-from BasePMM2 or TS2fit.
+Common parent of every PMM3 time-series fit class (ARPMM3, MAPMM3,
+ARMAPMM3, ARIMAPMM3). Inherits the PMM3-specific moments and cumulant
+coefficients from \code{\linkS4class{BasePMM3}} and the time-series
+slots from \code{\linkS4class{PMMtsfit}}. The diamond inheritance
+resolves at \code{\linkS4class{PMMfit}}, which both branches share
+as their virtual root.
 }
-\section{Slots}{
-
-\describe{
-\item{\code{coefficients}}{numeric vector of estimated parameters}
-
-\item{\code{residuals}}{numeric vector of final residuals/innovations}
-
-\item{\code{m2}}{numeric second central moment of initial residuals}
-
-\item{\code{m4}}{numeric fourth central moment of initial residuals}
-
-\item{\code{m6}}{numeric sixth central moment of initial residuals}
-
-\item{\code{gamma4}}{numeric excess kurtosis coefficient}
-
-\item{\code{gamma6}}{numeric sixth-order cumulant coefficient}
-
-\item{\code{g_coefficient}}{numeric theoretical variance reduction factor g3}
-
-\item{\code{kappa}}{numeric moment ratio used in NR solver}
-
-\item{\code{convergence}}{logical whether algorithm converged}
-
-\item{\code{iterations}}{numeric number of iterations performed}
-
-\item{\code{call}}{original function call}
-
-\item{\code{model_type}}{character string indicating model type}
-
-\item{\code{intercept}}{numeric intercept value}
-
-\item{\code{original_series}}{numeric vector of original time series}
-
-\item{\code{order}}{list of order parameters}
-}}
-

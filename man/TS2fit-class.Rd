@@ -3,38 +3,19 @@
 \docType{class}
 \name{TS2fit-class}
 \alias{TS2fit-class}
-\title{Base S4 class for storing PMM2 time series model results}
+\title{S4 class for PMM2 time-series fit results}
 \description{
+Common parent of every PMM2 time-series fit class (AR, MA, ARMA,
+ARIMA, and the seasonal SAR/SMA/SARMA/SARIMA subclasses). Inherits
+the PMM2-specific central moments from
+\code{\linkS4class{BasePMM2}} and the time-series slots
+(\code{model_type}, \code{intercept}, \code{original_series},
+\code{order}) from \code{\linkS4class{PMMtsfit}}. The diamond
+inheritance resolves at \code{\linkS4class{PMMfit}}, which both
+branches share as their virtual root.
+
 Base class for storing results of time series model estimation using PMM2
 }
-\section{Slots}{
-
-\describe{
-\item{\code{coefficients}}{numeric vector of estimated parameters}
-
-\item{\code{residuals}}{numeric vector of final residuals}
-
-\item{\code{m2}}{numeric second central moment of initial residuals}
-
-\item{\code{m3}}{numeric third central moment of initial residuals}
-
-\item{\code{m4}}{numeric fourth central moment of initial residuals}
-
-\item{\code{convergence}}{logical or integer code indicating whether algorithm converged}
-
-\item{\code{iterations}}{numeric number of iterations performed}
-
-\item{\code{call}}{original function call}
-
-\item{\code{model_type}}{character string indicating model type}
-
-\item{\code{intercept}}{numeric value of intercept}
-
-\item{\code{original_series}}{numeric vector of original time series}
-
-\item{\code{order}}{list of order parameters}
-}}
-
 \section{Slots}{
 
 \describe{

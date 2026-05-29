@@ -12,7 +12,7 @@
 
 <meta name="author" content="Serhii Zabolotnii" />
 
-<meta name="date" content="2026-05-14" />
+<meta name="date" content="2026-05-29" />
 
 <title>Bootstrap Inference for PMM2 Models</title>
 
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Bootstrap Inference for PMM2 Models</h1>
 <h4 class="author">Serhii Zabolotnii</h4>
-<h4 class="date">2026-05-14</h4>
+<h4 class="date">2026-05-29</h4>
 
 
 
@@ -425,20 +425,20 @@ y^*)\)</span> to get <span class="math inline">\(\hat{\beta}^*\)</span></li>
 <span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a></span>
 <span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co"># Display summary</span></span>
 <span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="fu">summary</span>(boot_results)</span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error          t.value         p.value     conf.low    </span></span>
-<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.563   Min.   :0.07524   Min.   :22.84   Min.   :0   Min.   :2.413  </span></span>
-<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.352   1st Qu.:0.16282   1st Qu.:25.65   1st Qu.:0   1st Qu.:4.027  </span></span>
-<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co">#&gt;  Median :6.142   Median :0.25041   Median :28.45   Median :0   Median :5.641  </span></span>
-<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.142   Mean   :0.25041   Mean   :28.45   Mean   :0   Mean   :5.641  </span></span>
-<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:7.931   3rd Qu.:0.33799   3rd Qu.:31.26   3rd Qu.:0   3rd Qu.:7.254  </span></span>
-<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.721   Max.   :0.42558   Max.   :34.07   Max.   :0   Max.   :8.868  </span></span>
-<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="co">#&gt;    conf.high     </span></span>
-<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="co">#&gt;  Min.   : 2.710  </span></span>
-<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 4.675  </span></span>
-<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a><span class="co">#&gt;  Median : 6.640  </span></span>
-<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="co">#&gt;  Mean   : 6.640  </span></span>
-<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 8.604  </span></span>
-<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a><span class="co">#&gt;  Max.   :10.569</span></span></code></pre></div>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error            bias               t.value     </span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.563   Min.   :0.07524   Min.   :-0.0028871   Min.   :22.84  </span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.352   1st Qu.:0.16282   1st Qu.:-0.0009472   1st Qu.:25.65  </span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co">#&gt;  Median :6.142   Median :0.25041   Median : 0.0009928   Median :28.45  </span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.142   Mean   :0.25041   Mean   : 0.0009928   Mean   :28.45  </span></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:7.931   3rd Qu.:0.33799   3rd Qu.: 0.0029327   3rd Qu.:31.26  </span></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.721   Max.   :0.42558   Max.   : 0.0048726   Max.   :34.07  </span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a><span class="co">#&gt;     p.value              conf.low       conf.high     </span></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="co">#&gt;  Min.   : 0.000e+00   Min.   :2.416   Min.   : 2.710  </span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.468e-116   1st Qu.:4.033   1st Qu.: 4.672  </span></span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a><span class="co">#&gt;  Median :8.936e-116   Median :5.651   Median : 6.633  </span></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a><span class="co">#&gt;  Mean   :8.936e-116   Mean   :5.651   Mean   : 6.633  </span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:1.340e-115   3rd Qu.:7.269   3rd Qu.: 8.594  </span></span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a><span class="co">#&gt;  Max.   :1.787e-115   Max.   :8.887   Max.   :10.555</span></span></code></pre></div>
 <p><strong>Interpretation:</strong></p>
 <ul>
 <li><strong>Estimate</strong>: PMM2 parameter estimates from original
@@ -586,9 +586,9 @@ is skewed</p>
 <span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a>  <span class="at">Lower =</span> boot_summary<span class="sc">$</span>conf.low,</span>
 <span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>  <span class="at">Upper =</span> boot_summary<span class="sc">$</span>conf.high</span>
 <span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>))</span>
-<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt;     Parameter    Lower     Upper</span></span>
-<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt; 1 (Intercept) 8.867981 10.568794</span></span>
-<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a><span class="co">#&gt; 2           x 2.413477  2.710258</span></span></code></pre></div>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a><span class="co">#&gt;     Parameter    Lower    Upper</span></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a><span class="co">#&gt; 1 (Intercept) 8.886616 10.55485</span></span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a><span class="co">#&gt; 2           x 2.415535  2.71046</span></span></code></pre></div>
 <p><strong>Key Finding:</strong> PMM2 bootstrap standard errors are
 typically <strong>10-30% smaller</strong> than OLS standard errors when
 errors are skewed, reflecting higher statistical efficiency.</p>
@@ -610,7 +610,7 @@ assumptions.</p>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;t-statistic:&quot;</span>, boot_summary<span class="sc">$</span>t.value[<span class="dv">2</span>], <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; t-statistic: 34.06547</span></span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;p-value:    &quot;</span>, boot_summary<span class="sc">$</span>p.value[<span class="dv">2</span>], <span class="st">&quot;</span><span class="sc">\n\n</span><span class="st">&quot;</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; p-value:     0</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; p-value:     2.395759e-254</span></span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a></span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="cf">if</span>(boot_summary<span class="sc">$</span>p.value[<span class="dv">2</span>] <span class="sc">&lt;</span> <span class="fl">0.05</span>) {</span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Decision: Reject H0 at 5% level</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
@@ -648,20 +648,20 @@ assumptions.</p>
 <span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a></span>
 <span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co"># Test H0: beta_x1 = beta_x2</span></span>
 <span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="fu">summary</span>(boot_multi)</span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt;     Estimate         Std.Error          t.value          p.value </span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;  Min.   :-0.5119   Min.   :0.04254   Min.   :-12.03   Min.   :0  </span></span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 1.0492   1st Qu.:0.04258   1st Qu.: 24.63   1st Qu.:0  </span></span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt;  Median : 1.6523   Median :0.04313   Median : 38.29   Median :0  </span></span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt;  Mean   : 1.9362   Mean   :0.04838   Mean   : 35.26   Mean   :0  </span></span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 2.5392   3rd Qu.:0.04893   3rd Qu.: 48.92   3rd Qu.:0  </span></span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt;  Max.   : 4.9521   Max.   :0.06474   Max.   : 76.49   Max.   :0  </span></span>
-<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt;     conf.low         conf.high      </span></span>
-<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt;  Min.   :-0.5944   Min.   :-0.4313  </span></span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 0.9637   1st Qu.: 1.1299  </span></span>
-<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt;  Median : 1.5677   Median : 1.7340  </span></span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt;  Mean   : 1.8418   Mean   : 2.0284  </span></span>
-<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 2.4459   3rd Qu.: 2.6325  </span></span>
-<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt;  Max.   : 4.8263   Max.   : 5.0767</span></span></code></pre></div>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt;     Estimate         Std.Error            bias               t.value      </span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;  Min.   :-0.5119   Min.   :0.04254   Min.   :-0.0053331   Min.   :-12.03  </span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 1.0492   1st Qu.:0.04258   1st Qu.:-0.0012402   1st Qu.: 24.63  </span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt;  Median : 1.6523   Median :0.04313   Median : 0.0006678   Median : 38.29  </span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt;  Mean   : 1.9362   Mean   :0.04838   Mean   :-0.0004654   Mean   : 35.26  </span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 2.5392   3rd Qu.:0.04893   3rd Qu.: 0.0014426   3rd Qu.: 48.92  </span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt;  Max.   : 4.9521   Max.   :0.06474   Max.   : 0.0021360   Max.   : 76.49  </span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt;     p.value             conf.low         conf.high      </span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.000e+00   Min.   :-0.5953   Min.   :-0.4286  </span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.000e+00   1st Qu.: 0.9658   1st Qu.: 1.1327  </span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt;  Median :0.000e+00   Median : 1.5677   Median : 1.7368  </span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt;  Mean   :5.919e-34   Mean   : 1.8413   Mean   : 2.0310  </span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:5.919e-34   3rd Qu.: 2.4433   3rd Qu.: 2.6351  </span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt;  Max.   :2.368e-33   Max.   : 4.8252   Max.   : 5.0790</span></span></code></pre></div>
 <hr />
 </div>
 </div>
@@ -692,20 +692,20 @@ dependence</strong>.</p>
 <span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a></span>
 <span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co"># Summary</span></span>
 <span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="fu">summary</span>(boot_ar)</span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;     Estimate        Std.Error          t.value         p.value </span></span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.6787   Min.   :0.03457   Min.   :19.64   Min.   :0  </span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.6787   1st Qu.:0.03457   1st Qu.:19.64   1st Qu.:0  </span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;  Median :0.6787   Median :0.03457   Median :19.64   Median :0  </span></span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.6787   Mean   :0.03457   Mean   :19.64   Mean   :0  </span></span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.6787   3rd Qu.:0.03457   3rd Qu.:19.64   3rd Qu.:0  </span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.6787   Max.   :0.03457   Max.   :19.64   Max.   :0  </span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;     conf.low        conf.high     </span></span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.6125   Min.   :0.7482  </span></span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.6125   1st Qu.:0.7482  </span></span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;  Median :0.6125   Median :0.7482  </span></span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.6125   Mean   :0.7482  </span></span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.6125   3rd Qu.:0.7482  </span></span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.6125   Max.   :0.7482</span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;     Estimate        Std.Error            bias               t.value    </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.6787   Min.   :0.03428   Min.   :-2.214e-05   Min.   :19.8  </span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.6787   1st Qu.:0.03428   1st Qu.:-2.214e-05   1st Qu.:19.8  </span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;  Median :0.6787   Median :0.03428   Median :-2.214e-05   Median :19.8  </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.6787   Mean   :0.03428   Mean   :-2.214e-05   Mean   :19.8  </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.6787   3rd Qu.:0.03428   3rd Qu.:-2.214e-05   3rd Qu.:19.8  </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.6787   Max.   :0.03428   Max.   :-2.214e-05   Max.   :19.8  </span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;     p.value             conf.low        conf.high     </span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;  Min.   :3.163e-87   Min.   :0.6115   Min.   :0.7459  </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:3.163e-87   1st Qu.:0.6115   1st Qu.:0.7459  </span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;  Median :3.163e-87   Median :0.6115   Median :0.7459  </span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;  Mean   :3.163e-87   Mean   :0.6115   Mean   :0.7459  </span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:3.163e-87   3rd Qu.:0.6115   3rd Qu.:0.7459  </span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;  Max.   :3.163e-87   Max.   :0.6115   Max.   :0.7459</span></span>
 <span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a></span>
 <span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co"># Check if AR coefficient is significantly different from 0.5</span></span>
 <span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">=== Testing H0: phi = 0.5 ===</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
@@ -716,7 +716,7 @@ dependence</strong>.</p>
 <span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a>ci_upper <span class="ot">&lt;-</span> boot_summary_ar<span class="sc">$</span>conf.high[<span class="dv">1</span>]</span>
 <span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a></span>
 <span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;95% CI: [&quot;</span>, <span class="fu">round</span>(ci_lower, <span class="dv">3</span>), <span class="st">&quot;,&quot;</span>, <span class="fu">round</span>(ci_upper, <span class="dv">3</span>), <span class="st">&quot;]</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a><span class="co">#&gt; 95% CI: [ 0.612 , 0.748 ]</span></span>
+<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a><span class="co">#&gt; 95% CI: [ 0.612 , 0.746 ]</span></span>
 <span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a></span>
 <span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a><span class="cf">if</span>(<span class="fl">0.5</span> <span class="sc">&gt;=</span> ci_lower <span class="sc">&amp;&amp;</span> <span class="fl">0.5</span> <span class="sc">&lt;=</span> ci_upper) {</span>
 <span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Decision: Cannot reject H0 (0.5 is within CI)</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
@@ -750,20 +750,20 @@ dependence</strong>.</p>
 <span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a></span>
 <span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co"># Display results</span></span>
 <span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="fu">summary</span>(boot_arma)</span>
-<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt;     Estimate        Std.Error          t.value         p.value         </span></span>
-<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.3020   Min.   :0.07011   Min.   :3.948   Min.   :0.000e+00  </span></span>
-<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.3682   1st Qu.:0.07170   1st Qu.:4.982   1st Qu.:1.970e-05  </span></span>
-<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt;  Median :0.4344   Median :0.07330   Median :6.016   Median :3.941e-05  </span></span>
-<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.4344   Mean   :0.07330   Mean   :6.016   Mean   :3.941e-05  </span></span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.5006   3rd Qu.:0.07490   3rd Qu.:7.051   3rd Qu.:5.911e-05  </span></span>
-<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.5668   Max.   :0.07650   Max.   :8.085   Max.   :7.881e-05  </span></span>
-<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;     conf.low        conf.high     </span></span>
-<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.1181   Min.   :0.4155  </span></span>
-<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.1823   1st Qu.:0.4751  </span></span>
-<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt;  Median :0.2465   Median :0.5347  </span></span>
-<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.2465   Mean   :0.5347  </span></span>
-<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.3107   3rd Qu.:0.5943  </span></span>
-<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.3749   Max.   :0.6539</span></span></code></pre></div>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt;     Estimate        Std.Error            bias             t.value     </span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.3020   Min.   :0.07011   Min.   :-0.04003   Min.   :3.948  </span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:0.3682   1st Qu.:0.07170   1st Qu.:-0.03791   1st Qu.:4.982  </span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt;  Median :0.4344   Median :0.07330   Median :-0.03579   Median :6.016  </span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;  Mean   :0.4344   Mean   :0.07330   Mean   :-0.03579   Mean   :6.016  </span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:0.5006   3rd Qu.:0.07490   3rd Qu.:-0.03368   3rd Qu.:7.051  </span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;  Max.   :0.5668   Max.   :0.07650   Max.   :-0.03156   Max.   :8.085  </span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;     p.value             conf.low        conf.high     </span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.000e+00   Min.   :0.1521   Min.   :0.4519  </span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:1.970e-05   1st Qu.:0.2214   1st Qu.:0.5150  </span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt;  Median :3.941e-05   Median :0.2907   Median :0.5781  </span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt;  Mean   :3.941e-05   Mean   :0.2907   Mean   :0.5781  </span></span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:5.911e-05   3rd Qu.:0.3601   3rd Qu.:0.6411  </span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt;  Max.   :7.881e-05   Max.   :0.4294   Max.   :0.7042</span></span></code></pre></div>
 <p><strong>Key Advantage:</strong> Bootstrap inference is <strong>robust
 to innovation distribution</strong> and does not require Gaussian
 assumptions.</p>
@@ -858,20 +858,20 @@ beneficial when:</p>
 <span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># Check for failed bootstrap samples</span></span>
 <span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co"># (In production code, inspect convergence attribute)</span></span>
 <span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">summary</span>(boot_verbose)</span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error          t.value         p.value     conf.low    </span></span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.563   Min.   :0.07911   Min.   :21.12   Min.   :0   Min.   :2.413  </span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.352   1st Qu.:0.17442   1st Qu.:23.94   1st Qu.:0   1st Qu.:4.013  </span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;  Median :6.142   Median :0.26974   Median :26.76   Median :0   Median :5.612  </span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.142   Mean   :0.26974   Mean   :26.76   Mean   :0   Mean   :5.612  </span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:7.931   3rd Qu.:0.36505   3rd Qu.:29.58   3rd Qu.:0   3rd Qu.:7.212  </span></span>
-<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.721   Max.   :0.46037   Max.   :32.40   Max.   :0   Max.   :8.812  </span></span>
-<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;    conf.high     </span></span>
-<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;  Min.   : 2.722  </span></span>
-<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 4.684  </span></span>
-<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="co">#&gt;  Median : 6.647  </span></span>
-<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="co">#&gt;  Mean   : 6.647  </span></span>
-<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 8.610  </span></span>
-<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="co">#&gt;  Max.   :10.573</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error            bias               t.value     </span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.563   Min.   :0.07911   Min.   :-0.0114838   Min.   :21.12  </span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.352   1st Qu.:0.17442   1st Qu.:-0.0083642   1st Qu.:23.94  </span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;  Median :6.142   Median :0.26974   Median :-0.0052445   Median :26.76  </span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.142   Mean   :0.26974   Mean   :-0.0052445   Mean   :26.76  </span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:7.931   3rd Qu.:0.36505   3rd Qu.:-0.0021249   3rd Qu.:29.58  </span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.721   Max.   :0.46037   Max.   : 0.0009947   Max.   :32.40  </span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt;     p.value             conf.low       conf.high     </span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt;  Min.   :0.000e+00   Min.   :2.408   Min.   : 2.718  </span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:1.443e-99   1st Qu.:4.011   1st Qu.: 4.694  </span></span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="co">#&gt;  Median :2.885e-99   Median :5.613   Median : 6.671  </span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="co">#&gt;  Mean   :2.885e-99   Mean   :5.613   Mean   : 6.671  </span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:4.328e-99   3rd Qu.:7.216   3rd Qu.: 8.647  </span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="co">#&gt;  Max.   :5.771e-99   Max.   :8.818   Max.   :10.623</span></span>
 <span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a></span>
 <span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">All bootstrap samples should converge successfully.</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a><span class="co">#&gt; </span></span>

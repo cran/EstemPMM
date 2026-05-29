@@ -53,7 +53,9 @@
 #' @param g2_threshold numeric: minimum g2 improvement to justify PMM2 (default 0.95)
 #' @param verbose logical: print decision reasoning (default TRUE)
 #'
-#' @return A list with components:
+#' @return An object of S3 class \code{"PMMdispatch"}: a list with
+#'   components accessible via \code{$} and a dedicated \code{print}
+#'   method. Components:
 #'   \item{method}{Character: "OLS", "PMM2", or "PMM3"}
 #'   \item{gamma3}{Sample skewness}
 #'   \item{gamma4}{Sample excess kurtosis}
@@ -126,25 +128,85 @@ pmm_dispatch <- function(residuals,
     )
   }
 
-  result <- list(
-    method          = method,
-    gamma3          = cum$gamma3,
-    gamma4          = cum$gamma4,
-    gamma6          = cum$gamma6,
-    g2              = g2,
-    g3              = g3,
-    g_selected      = g,
-    improvement_pct = (1 - g) * 100,
-    reasoning       = reason,
-    n               = length(residuals)
+  result <- structure(
+    list(
+      method          = method,
+      gamma3          = cum$gamma3,
+      gamma4          = cum$gamma4,
+      gamma6          = cum$gamma6,
+      g2              = g2,
+      g3              = g3,
+      g_selected      = g,
+      improvement_pct = (1 - g) * 100,
+      reasoning       = reason,
+      n               = length(residuals)
+    ),
+    class = "PMMdispatch"
   )
 
-  if (verbose) {
-    cat(sprintf("  n = %d | gamma3 = %+.3f | gamma4 = %+.3f\n",
-                result$n, result$gamma3, result$gamma4))
-    cat(sprintf("  g2(PMM2) = %.4f | g3(PMM3) = %.4f\n", g2, g3))
-    cat(sprintf("  >>> %s\n", reason))
-  }
+  if (verbose) print(result)
 
   invisible(result)
+}
+
+#' Print method for PMMdispatch objects
+#'
+#' @param x object of class \code{PMMdispatch} returned by
+#'   \code{\link{pmm_dispatch}}
+#' @param ... additional arguments (ignored)
+#'
+#' @return The object \code{x}, invisibly.
+#'
+#' @export
+print.PMMdispatch <- function(x, ...) {
+  cat("PMM method dispatch\n")
+  cat(sprintf("  n = %d | gamma3 = %+.3f | gamma4 = %+.3f\n",
+              x$n, x$gamma3, x$gamma4))
+  cat(sprintf("  g2(PMM2) = %.4f | g3(PMM3) = %.4f\n", x$g2, x$g3))
+  cat(sprintf("  Selected: %s (expected variance reduction: %.1f%%)\n",
+              x$method, x$improvement_pct))
+  cat(sprintf("  Reason: %s\n", x$reasoning))
+  invisible(x)
+}
+
+#' Summary method for PMMdispatch objects
+#'
+#' Returns a one-row data frame suitable for inclusion in reports or
+#' comparison tables.
+#'
+#' @param object object of class \code{PMMdispatch}
+#' @param ... additional arguments (ignored)
+#'
+#' @return A data frame with columns \code{method}, \code{n},
+#'   \code{gamma3}, \code{gamma4}, \code{gamma6}, \code{g2}, \code{g3},
+#'   \code{g_selected}, \code{improvement_pct}.
+#'
+#' @method summary PMMdispatch
+#' @export
+summary.PMMdispatch <- function(object, ...) {
+  data.frame(
+    method          = object$method,
+    n               = object$n,
+    gamma3          = object$gamma3,
+    gamma4          = object$gamma4,
+    gamma6          = object$gamma6,
+    g2              = object$g2,
+    g3              = object$g3,
+    g_selected      = object$g_selected,
+    improvement_pct = object$improvement_pct,
+    stringsAsFactors = FALSE
+  )
+}
+
+#' Format method for PMMdispatch objects
+#'
+#' @param x object of class \code{PMMdispatch}
+#' @param ... additional arguments (ignored)
+#'
+#' @return A character string summarising the selected method.
+#'
+#' @export
+format.PMMdispatch <- function(x, ...) {
+  sprintf("PMMdispatch: method=%s, n=%d, g=%.3f (%.1f%% reduction)",
+          x$method, x$n, x$g_selected, x$improvement_pct)
 }

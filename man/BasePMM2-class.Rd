@@ -3,27 +3,22 @@
 \docType{class}
 \name{BasePMM2-class}
 \alias{BasePMM2-class}
-\title{Base S4 class for storing PMM2 model results}
+\title{Virtual S4 class for the PMM2 model family}
 \description{
-Base S4 class for storing PMM2 model results
+Virtual intermediate that inherits common slots (coefficients,
+residuals, convergence, iterations, call) from
+\code{\linkS4class{PMMfit}} and adds the PMM2-specific central
+moments \eqn{m_2, m_3, m_4}. Concrete subclasses are
+\code{\linkS4class{PMM2fit}} (regression) and the time-series classes
+under \code{\linkS4class{TS2fit}}.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{coefficients}}{numeric vector of estimated parameters}
-
-\item{\code{residuals}}{numeric vector of final residuals}
-
 \item{\code{m2}}{numeric second central moment of initial residuals}
 
 \item{\code{m3}}{numeric third central moment of initial residuals}
 
 \item{\code{m4}}{numeric fourth central moment of initial residuals}
-
-\item{\code{convergence}}{logical or integer code indicating whether algorithm converged}
-
-\item{\code{iterations}}{numeric number of iterations performed}
-
-\item{\code{call}}{original function call}
 }}
 

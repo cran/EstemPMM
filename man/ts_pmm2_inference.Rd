@@ -13,13 +13,14 @@ ts_pmm2_inference(
   method = c("residual", "block"),
   parallel = FALSE,
   cores = NULL,
-  debug = FALSE
+  debug = FALSE,
+  ci_method = c("normal", "percentile", "basic")
 )
 }
 \arguments{
 \item{object}{object of class TS2fit}
 
-\item{x}{(optional) original time series; if NULL, uses object@original_series}
+\item{x}{(optional) original time series; if NULL, uses \code{object@original_series}}
 
 \item{B}{number of bootstrap replications}
 
@@ -34,10 +35,24 @@ ts_pmm2_inference(
 \item{cores}{number of cores for parallel computing}
 
 \item{debug}{logical, whether to output additional diagnostic information}
+
+\item{ci_method}{character: confidence-interval method. See
+\code{\link{pmm2_inference}} for the full description. The
+default \code{"normal"} returns a Wald interval centred on the
+point estimate, which is robust to the moderate downward bias
+that block bootstrap induces for AR coefficients of strongly
+persistent series. Use \code{"percentile"} for Efron's classical
+percentile interval or \code{"basic"} for the Davison & Hinkley
+(1997) pivotal interval.}
 }
 \value{
-data.frame with columns: Estimate, Std.Error, t.value, p.value
+data.frame with columns: Estimate, Std.Error, bias,
+t.value, p.value, conf.low, conf.high.
 }
 \description{
-Bootstrap inference for PMM2 time series models
+Residual- or block-bootstrap standard errors and confidence
+intervals for PMM2 time-series fits. Block bootstrap can exhibit
+substantial finite-sample bias for AR coefficients near the
+stationarity boundary; see \code{ci_method} and the returned
+\code{bias} column for diagnostics.
 }

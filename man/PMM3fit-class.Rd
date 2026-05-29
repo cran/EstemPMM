@@ -3,36 +3,9 @@
 \docType{class}
 \name{PMM3fit-class}
 \alias{PMM3fit-class}
-\title{S4 class for storing PMM3 regression model results}
+\title{S4 class for PMM3 regression fit results}
 \description{
-PMM3 (S=3) is designed for symmetric platykurtic error distributions.
-This class is fully standalone and does NOT inherit from BasePMM2.
+Concrete class returned by \code{\link{lm_pmm3}}. Inherits all slots
+from \code{\linkS4class{BasePMM3}}, which in turn inherits common
+slots from \code{\linkS4class{PMMfit}}.
 }
-\section{Slots}{
-
-\describe{
-\item{\code{coefficients}}{numeric vector of estimated parameters}
-
-\item{\code{residuals}}{numeric vector of final residuals}
-
-\item{\code{m2}}{numeric second central moment of initial residuals}
-
-\item{\code{m4}}{numeric fourth central moment of initial residuals}
-
-\item{\code{m6}}{numeric sixth central moment of initial residuals}
-
-\item{\code{gamma4}}{numeric excess kurtosis coefficient}
-
-\item{\code{gamma6}}{numeric sixth-order cumulant coefficient}
-
-\item{\code{g_coefficient}}{numeric theoretical variance reduction factor g3}
-
-\item{\code{kappa}}{numeric moment ratio used in NR solver}
-
-\item{\code{convergence}}{logical indicating whether algorithm converged}
-
-\item{\code{iterations}}{numeric number of iterations performed}
-
-\item{\code{call}}{original function call}
-}}
-

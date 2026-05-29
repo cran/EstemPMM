@@ -291,59 +291,32 @@ setMethod("summary", "PMM3fit",
             invisible(object)
           })
 
-#' Calculate AIC for PMM3fit object
-#'
-#' @param object PMM3fit object
-#' @param ... Additional arguments (not used)
-#' @param k Penalty per parameter (default 2)
-#'
-#' @return AIC value
-#' @export
-setMethod("AIC", "PMM3fit",
-          function(object, ..., k = 2) {
-            res <- object@residuals
-            n <- length(res)
-            p <- length(object@coefficients)
-            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            -2 * ll + k * p
-          })
-
-#' Calculate BIC for PMM3fit object
-#'
-#' @param object PMM3fit object
-#' @param ... Additional arguments (not used)
-#'
-#' @return BIC value
-#' @export
-setMethod("BIC", "PMM3fit",
-          function(object, ...) {
-            res <- object@residuals
-            n <- length(res)
-            p <- length(object@coefficients)
-            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            -2 * ll + log(n) * p
-          })
+# AIC and BIC for PMM3fit are obtained via the default dispatch through
+# logLik(), which returns a "logLik" object with df and nobs attributes.
+# See setMethod("logLik", "PMM3fit", ...) below.
 
 #' Extract log-likelihood from PMM3fit object
 #'
-#' Returns a Gaussian approximate log-likelihood, consistent with the AIC method.
+#' Returns a Gaussian approximate log-likelihood. Defined as an S3 method
+#' so that \code{stats::AIC} and \code{stats::BIC} (which dispatch
+#' \code{logLik} via \code{UseMethod}) work without explicit S4 methods.
 #'
 #' @param object PMM3fit object
 #' @param ... Additional arguments (not used)
 #'
 #' @return Object of class \code{logLik}
+#' @method logLik PMM3fit
 #' @export
-setMethod("logLik", "PMM3fit",
-          function(object, ...) {
-            res <- object@residuals
-            n <- length(res)
-            p <- length(object@coefficients)
-            ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
-            attr(ll, "df") <- p
-            attr(ll, "nobs") <- n
-            class(ll) <- "logLik"
-            ll
-          })
+logLik.PMM3fit <- function(object, ...) {
+  res <- object@residuals
+  n <- length(res)
+  p <- length(object@coefficients)
+  ll <- -n/2 * log(sum(res^2)/n) - n/2 * (1 + log(2*pi))
+  attr(ll, "df") <- p
+  attr(ll, "nobs") <- n
+  class(ll) <- "logLik"
+  ll
+}
 
 #' Number of observations in PMM3fit object
 #'
@@ -355,6 +328,60 @@ setMethod("logLik", "PMM3fit",
 setMethod("nobs", "PMM3fit",
           function(object, ...) {
             length(object@residuals)
+          })
+
+#' Variance-covariance matrix for PMM3fit objects
+#'
+#' Returns the asymptotic covariance matrix
+#' \eqn{V_{\mathrm{PMM3}} = g_3\,\sigma^2 (X^\top X)^{-1}} where
+#' \eqn{g_3 = 1 - \gamma_4^{2} / (6 + 9\gamma_4 + \gamma_6)}
+#' is the PMM3 variance reduction factor (Kunchenko's polynomial
+#' maximization method, s = 3 specialised to symmetric platykurtic
+#' errors; see \code{\link{pmm3_variance_matrices}}). Under Gaussian
+#' errors \eqn{g_3 = 1} and the result equals the OLS covariance.
+#'
+#' @param object PMM3fit object
+#' @param ... Additional arguments (not used)
+#'
+#' @return Numeric matrix of the same dimension as the number of coefficients
+#' @export
+setMethod("vcov", "PMM3fit",
+          function(object, ...) {
+            X <- attr(object, "model_matrix")
+            if (is.null(X))
+              stop("model_matrix not found; refit the model with lm_pmm3()")
+            vm <- pmm3_variance_matrices(X, object@m2, object@m4, object@m6)
+            V  <- vm$pmm3
+            nms <- names(object@coefficients)
+            if (!is.null(nms) && length(nms) == nrow(V)) {
+              rownames(V) <- nms
+              colnames(V) <- nms
+            }
+            V
+          })
+
+#' Confidence intervals for PMM3fit coefficients
+#'
+#' Computes normal-approximation confidence intervals using the
+#' asymptotic covariance matrix from \code{\link{vcov,PMM3fit-method}}.
+#'
+#' @param object PMM3fit object
+#' @param parm character or integer vector of parameter names/indices to include
+#' @param level confidence level (default 0.95)
+#' @param ... Additional arguments (not used)
+#'
+#' @return Matrix with lower and upper confidence limits
+#' @export
+setMethod("confint", "PMM3fit",
+          function(object, parm, level = 0.95, ...) {
+            cf <- object@coefficients
+            se <- sqrt(diag(vcov(object)))
+            a  <- (1 - level) / 2
+            fac <- stats::qnorm(c(a, 1 - a))
+            ci  <- cf + outer(se, fac)
+            colnames(ci) <- paste0(format(100 * c(a, 1 - a), trim = TRUE), " %")
+            if (!missing(parm)) ci <- ci[parm, , drop = FALSE]
+            ci
           })
 
 #' Plot diagnostic plots for PMM3fit object

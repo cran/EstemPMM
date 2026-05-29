@@ -12,7 +12,7 @@
 
 <meta name="author" content="Serhii Zabolotnii" />
 
-<meta name="date" content="2026-05-14" />
+<meta name="date" content="2026-05-29" />
 
 <title>PMM3 for Time Series: AR, MA, ARMA, and ARIMA Models</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">PMM3 for Time Series: AR, MA, ARMA, and
 ARIMA Models</h1>
 <h4 class="author">Serhii Zabolotnii</h4>
-<h4 class="date">2026-05-14</h4>
+<h4 class="date">2026-05-29</h4>
 
 
 
@@ -804,9 +804,11 @@ classical fit.</p>
 <span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a></span>
 <span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co"># Dispatch</span></span>
 <span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>recommendation <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_classical)</span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt;   n = 300 | gamma3 = +0.014 | gamma4 = -1.216</span></span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9998 | g3(PMM3) = 0.2948</span></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.014 &lt; 0.3 (symmetric) and gamma4 = -1.216 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 70.5%.</span></span></code></pre></div>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;   n = 300 | gamma3 = +0.014 | gamma4 = -1.216</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9998 | g3(PMM3) = 0.2948</span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM3 (expected variance reduction: 70.5%)</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.014 &lt; 0.3 (symmetric) and gamma4 = -1.216 &lt; -0.7 (platykurtic). PMM3 expected to reduce variance by 70.5%.</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Compare all three methods on uniform innovations</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Recommended method:&quot;</span>, recommendation<span class="sc">$</span>method, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; Recommended method: PMM3</span></span>
@@ -857,12 +859,14 @@ changes of the Dow Jones Industrial Average for July–December 2002.</p>
 <span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a></span>
 <span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a><span class="co"># Let pmm_dispatch decide</span></span>
 <span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a>dispatch <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_djia)</span>
-<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a><span class="co">#&gt;   n = 126 | gamma3 = +0.445 | gamma4 = +0.263</span></span>
-<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9126 | g3(PMM3) = 0.9900</span></span>
-<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.445 &gt; 0.3 and g2 = 0.913 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (8.7% reduction).</span></span>
-<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Recommended method:&quot;</span>, dispatch<span class="sc">$</span>method, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a><span class="co">#&gt; Recommended method: PMM2</span></span></code></pre></div>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a><span class="co">#&gt;   n = 126 | gamma3 = +0.445 | gamma4 = +0.263</span></span>
+<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9126 | g3(PMM3) = 0.9900</span></span>
+<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM2 (expected variance reduction: 8.7%)</span></span>
+<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.445 &gt; 0.3 and g2 = 0.913 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (8.7% reduction).</span></span>
+<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Recommended method:&quot;</span>, dispatch<span class="sc">$</span>method, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a><span class="co">#&gt; Recommended method: PMM2</span></span></code></pre></div>
 </div>
 <div id="fit-ar1-with-all-three-methods" class="section level3">
 <h3>Fit AR(1) with All Three Methods</h3>
@@ -920,12 +924,14 @@ prices.</p>
 <span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a></span>
 <span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="co"># Dispatch</span></span>
 <span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a>dispatch_oil <span class="ot">&lt;-</span> <span class="fu">pmm_dispatch</span>(res_oil)</span>
-<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co">#&gt;   n = 1248 | gamma3 = -0.498 | gamma4 = +2.093</span></span>
-<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9394 | g3(PMM3) = 0.9010</span></span>
-<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="co">#&gt;   &gt;&gt;&gt; |gamma3| = 0.498 &gt; 0.3 and g2 = 0.939 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (6.1% reduction).</span></span>
-<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Recommended method:&quot;</span>, dispatch_oil<span class="sc">$</span>method, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="co">#&gt; Recommended method: PMM2</span></span></code></pre></div>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co">#&gt; PMM method dispatch</span></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co">#&gt;   n = 1248 | gamma3 = -0.498 | gamma4 = +2.093</span></span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="co">#&gt;   g2(PMM2) = 0.9394 | g3(PMM3) = 0.9010</span></span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="co">#&gt;   Selected: PMM2 (expected variance reduction: 6.1%)</span></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="co">#&gt;   Reason: |gamma3| = 0.498 &gt; 0.3 and g2 = 0.939 &lt; 0.95: moderate asymmetry, PMM2 worthwhile (6.1% reduction).</span></span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">Recommended method:&quot;</span>, dispatch_oil<span class="sc">$</span>method, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="co">#&gt; Recommended method: PMM2</span></span></code></pre></div>
 </div>
 <div id="fit-and-compare" class="section level3">
 <h3>Fit and Compare</h3>

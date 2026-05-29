@@ -12,7 +12,7 @@
 
 <meta name="author" content="Serhii Zabolotnii" />
 
-<meta name="date" content="2026-05-14" />
+<meta name="date" content="2026-05-29" />
 
 <title>Introduction to PMM2: Polynomial Maximization Method</title>
 
@@ -342,7 +342,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Introduction to PMM2: Polynomial
 Maximization Method</h1>
 <h4 class="author">Serhii Zabolotnii</h4>
-<h4 class="date">2026-05-14</h4>
+<h4 class="date">2026-05-29</h4>
 
 
 
@@ -516,20 +516,20 @@ inference</strong>:</p>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co"># Display summary with confidence intervals</span></span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">summary</span>(boot_results)</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error          t.value         p.value     conf.low    </span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.465   Min.   :0.06404   Min.   :27.25   Min.   :0   Min.   :2.348  </span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.344   1st Qu.:0.13959   1st Qu.:30.06   1st Qu.:0   1st Qu.:4.072  </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  Median :6.223   Median :0.21514   Median :32.87   Median :0   Median :5.796  </span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.223   Mean   :0.21514   Mean   :32.87   Mean   :0   Mean   :5.796  </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:8.102   3rd Qu.:0.29069   3rd Qu.:35.68   3rd Qu.:0   3rd Qu.:7.520  </span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.981   Max.   :0.36624   Max.   :38.49   Max.   :0   Max.   :9.244  </span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;    conf.high     </span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  Min.   : 2.597  </span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  1st Qu.: 4.615  </span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  Median : 6.634  </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  Mean   : 6.634  </span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.: 8.652  </span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt;  Max.   :10.670</span></span></code></pre></div>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt;     Estimate       Std.Error            bias               t.value     </span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;  Min.   :2.465   Min.   :0.06404   Min.   :-0.0085748   Min.   :27.25  </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:4.344   1st Qu.:0.13959   1st Qu.:-0.0060182   1st Qu.:30.06  </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt;  Median :6.223   Median :0.21514   Median :-0.0034615   Median :32.87  </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt;  Mean   :6.223   Mean   :0.21514   Mean   :-0.0034615   Mean   :32.87  </span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:8.102   3rd Qu.:0.29069   3rd Qu.:-0.0009049   3rd Qu.:35.68  </span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  Max.   :9.981   Max.   :0.36624   Max.   : 0.0016517   Max.   :38.49  </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;     p.value              conf.low       conf.high     </span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt;  Min.   : 0.000e+00   Min.   :2.340   Min.   : 2.591  </span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt;  1st Qu.:3.960e-164   1st Qu.:4.070   1st Qu.: 4.618  </span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;  Median :7.921e-164   Median :5.801   Median : 6.645  </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt;  Mean   :7.921e-164   Mean   :5.801   Mean   : 6.645  </span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt;  3rd Qu.:1.188e-163   3rd Qu.:7.532   3rd Qu.: 8.672  </span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt;  Max.   :1.584e-163   Max.   :9.263   Max.   :10.699</span></span></code></pre></div>
 <p>The bootstrap results provide:</p>
 <ul>
 <li><strong>Standard errors</strong> for PMM2 estimates</li>
@@ -622,10 +622,14 @@ indicating higher precision.</p>
 <span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a><span class="co">#&gt;   Iterations: 3 </span></span>
 <span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a><span class="co">#&gt; Approximate statistical inference via bootstrap (B=100):</span></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt;               Estimate  Std.Error   t.value      p.value   conf.low  conf.high</span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.0897269 0.28555149  7.318214 2.513545e-13  1.5799690  2.6122483</span></span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; x            2.8725555 0.09797060 29.320586 0.000000e+00  2.6892140  3.0583990</span></span>
-<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt; I(x^2)      -0.4779162 0.06130577 -7.795616 6.439294e-15 -0.5863997 -0.3492109</span></span></code></pre></div>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a><span class="co">#&gt;               Estimate  Std.Error         bias   t.value       p.value</span></span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a><span class="co">#&gt; (Intercept)  2.0897269 0.28555149  0.018247864  7.318214  2.512929e-13</span></span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a><span class="co">#&gt; x            2.8725555 0.09797060 -0.004780998 29.320586 5.668674e-189</span></span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a><span class="co">#&gt; I(x^2)      -0.4779162 0.06130577 -0.001644459 -7.795616  6.409521e-15</span></span>
+<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a><span class="co">#&gt;               conf.low  conf.high</span></span>
+<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a><span class="co">#&gt; (Intercept)  1.5300563  2.6493976</span></span>
+<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a><span class="co">#&gt; x            2.6805366  3.0645743</span></span>
+<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a><span class="co">#&gt; I(x^2)      -0.5980733 -0.3577591</span></span></code></pre></div>
 <hr />
 </div>
 <div id="diagnostic-plots" class="section level2">
