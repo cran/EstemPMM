@@ -9,6 +9,7 @@ ts_pmm2(
   order,
   model_type = c("ar", "ma", "arma", "arima"),
   method = "pmm2",
+  ma_solver = c("linearized", "recursive"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -23,14 +24,20 @@ ts_pmm2(
 \item{x}{Numeric vector of time series data}
 
 \item{order}{Model order specification:
-- For AR models: a single integer (AR order)
-- For MA models: a single integer (MA order)
-- For ARMA models: vector c(p, q) (AR and MA orders)
-- For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
+\itemize{
+\item For AR models: a single integer (AR order)
+\item For MA models: a single integer (MA order)
+\item For ARMA models: vector c(p, q) (AR and MA orders)
+\item For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)
+}}
 
 \item{model_type}{String specifying the model type: "ar", "ma", "arma", or "arima"}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
+
+\item{ma_solver}{String: how the moving-average recursion is treated,
+\code{"linearized"} (default) or \code{"recursive"}. Has no effect when the
+MA order is zero. See Details.}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 
@@ -62,4 +69,34 @@ The PMM2 algorithm works as follows:
 \item Uses these moments with a specialized solver (pmm2_algorithm) to find
 robust parameter estimates
 }
+
+\strong{Treatment of the MA recursion (\code{ma_solver}).}
+\itemize{
+\item \code{"linearized"} (default, historical behaviour): the design
+matrix is built once from the CSS residuals and held fixed. For AR
+columns this is exact, because the regressors are observed data. For MA
+columns it is a one-step linearisation of the innovation recursion and
+costs a factor of exactly \eqn{1 - \theta^2} in asymptotic variance
+relative to CSS. The penalty does \emph{not} vanish as \eqn{n} grows.
+\item \code{"recursive"} (recommended whenever \eqn{q > 0}): the
+innovations \eqn{\varepsilon_t(\beta)} and the score regressors
+\eqn{x_t(\beta) = -\partial \varepsilon_t / \partial \beta} are
+recomputed by the exact recursion at every candidate parameter. When
+\eqn{\mu_3 = 0} the estimating equation then reduces identically to the
+CSS first-order condition, so the \eqn{1 - \theta^2} penalty disappears
+exactly rather than asymptotically. Measured on ARIMA(0,1,1) with
+\eqn{\theta = -0.5}, \eqn{T = 500}: relative efficiency against CSS rises
+from 0.77 to 0.98 (Gaussian), 1.30 to 1.72 (Gamma), 1.33 to 1.81
+(lognormal) and 1.35 to 1.73 (chi-squared).
+}
+The default is \code{"linearized"} for backward compatibility only; it will
+change in a future major release. \code{ma_solver} is supported for
+\code{model_type} \code{"ma"}, \code{"arma"} and \code{"arima"} with
+\eqn{q \ge 1} and any \eqn{p \ge 0}. Seasonal models
+(\code{\link{sarima_pmm2}} and friends) always use the linearised path.
+
+Not to be confused with the unrelated \code{ma_method} argument of
+\code{\link{sarima_pmm2}}, which takes \code{"mle"}/\code{"pmm2"} and
+selects how the seasonal MA terms are estimated. The two control different
+things and are not interchangeable.
 }

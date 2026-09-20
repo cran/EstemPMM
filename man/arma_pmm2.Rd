@@ -9,6 +9,7 @@ arma_pmm2(
   order = c(1, 1),
   method = "pmm2",
   pmm2_variant = c("unified_global", "unified_iterative", "linearized"),
+  ma_solver = c("linearized", "recursive"),
   max_iter = 50,
   tol = 1e-06,
   include.mean = TRUE,
@@ -23,10 +24,12 @@ arma_pmm2(
 \item{x}{Numeric vector of time series data}
 
 \item{order}{Model order specification:
-- For AR models: a single integer (AR order)
-- For MA models: a single integer (MA order)
-- For ARMA models: vector c(p, q) (AR and MA orders)
-- For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)}
+\itemize{
+\item For AR models: a single integer (AR order)
+\item For MA models: a single integer (MA order)
+\item For ARMA models: vector c(p, q) (AR and MA orders)
+\item For ARIMA models: vector c(p, d, q) (AR, differencing, and MA orders)
+}}
 
 \item{method}{String: estimation method, one of "pmm2" (default), "css", "ml", "yw", "ols"}
 
@@ -34,6 +37,10 @@ arma_pmm2(
 Options: \code{"unified_global"} (default, one-step correction),
 \code{"unified_iterative"} (full Newton-Raphson), or
 \code{"linearized"} (specialized for MA/SMA models).}
+
+\item{ma_solver}{String: how the moving-average recursion is treated,
+\code{"linearized"} (default) or \code{"recursive"}. Has no effect when the
+MA order is zero. See Details.}
 
 \item{max_iter}{Integer: maximum number of iterations for the algorithm}
 

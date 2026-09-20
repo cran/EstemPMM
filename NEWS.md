@@ -1,5 +1,140 @@
 # EstemPMM News
 
+## Version 0.5.0 (2026-08-09)
+
+### Major: recursive (non-linearised) estimation of the MA component
+
+Until 0.4.0 every PMM2 time-series path with a moving-average component
+built the design matrix **once** from the CSS residuals
+(`arma_build_design()`, `ma_build_design()`) and held it fixed while the
+PMM2 Newton iteration ran. For the AR columns this is exact -- the
+regressors are observed data and do not depend on the parameter. For the
+MA columns it is a **one-step linearisation of the innovation
+recursion**, and it costs a factor of exactly `1 - theta^2` in
+asymptotic variance relative to CSS. The penalty does *not* shrink as
+the sample grows: on ARIMA(0,1,1) it stayed near -30% of variance for
+`T` = 100, 200, 500 and 1000 alike.
+
+#### New: `ma_solver = c("linearized", "recursive")`
+
+`ts_pmm2()`, `ma_pmm2()`, `arma_pmm2()` and `arima_pmm2()` gained an
+`ma_solver` argument. With `"recursive"` the innovations
+`eps_t(beta)` and the score regressors
+`x_t(beta) = -d eps_t / d beta` are recomputed by the exact recursion at
+**every** candidate parameter, so there is no linearisation. When
+`mu3 = 0` the PMM2 estimating equation then reduces *identically* to the
+CSS first-order condition, and the `1 - theta^2` penalty disappears
+exactly rather than asymptotically.
+
+Measured effect (ARIMA(0,1,1), `theta = -0.5`, `T = 500`, 2000
+replications, relative efficiency against CSS; higher is better):
+
+| innovations  | linearised | recursive | theory `(2+g4)/(2+g4-g3^2)` |
+|--------------|-----------:|----------:|----------------------------:|
+| Gaussian     |     0.7723 |    0.9863 |                      1.0000 |
+| Gamma(2,1)   |     1.2807 |    1.6986 |                      1.6667 |
+| lognormal    |     1.3289 |    1.8116 |                      1.6822 |
+| chi-squared  |     1.3538 |    1.7557 |                      1.8000 |
+
+Variance reduction on the MA branch rises from about 23% to about 42%,
+i.e. to parity with the pure AR branch. The Gaussian penalty falls from
+-23% to -1.4%.
+
+**The default remains `"linearized"`** so that results from 0.4.x
+reproduce bit-for-bit. `"recursive"` is the recommended setting whenever
+`q >= 1`; the default is scheduled to change in the next major release.
+
+#### Scope of the recursive branch
+
+Supported: non-seasonal `ma`, `arma` and `arima` model types with
+`q >= 1` and any `p >= 0`, with or without an intercept, and any
+differencing order `d`. Verified against numerical differentiation for
+ARMA(2,2) with an intercept.
+
+Not supported (silently keep the linearised path): the seasonal
+`sar_pmm2()` / `sma_pmm2()` / `sarma_pmm2()` / `sarima_pmm2()` family.
+Note that `sarima_pmm2()` has an unrelated argument that is *also*
+called `ma_method`, taking `"mle"` / `"pmm2"`; the two are not
+interchangeable.
+
+Pure AR models are unaffected: with `q = 0` the recursion is the
+identity map and reproduces the fixed lag design bit-for-bit, so
+`ma_solver` is ignored and the estimates are unchanged.
+
+#### New: robust solver
+
+The recursive estimating equation is solved by a safeguarded Newton
+iteration with
+
+- the analytic Jacobian obtained from a **second** recursion
+  (`d x_t / d beta`, closed form), with a Gauss-Newton fallback;
+- backtracking line search on the norm of the estimating function;
+- projection onto the stationary/invertible region -- any step that
+  leaves it is halved;
+- a CSS fallback, so the solver never returns `NA`.
+
+On the benchmark grid above (ARIMA(0,1,1), `theta = -0.5`, `T = 500`,
+2000 replications x 4 laws) the solver returned a finite, invertible
+estimate and reported convergence on **100.0%** of replications for all
+four laws. A bracketing `uniroot()` on `[-0.97, 0.97]` -- the obvious
+alternative -- fails on up to 6% of replications under skewed
+innovations (1995/1882/1952/1873 successes out of 2000 for
+Gaussian/Gamma/lognormal/chi-squared).
+
+#### New: closed-form standard errors for MA/ARMA/ARIMA
+
+For recursive fits the score regressors are `F_{t-1}`-measurable, so the
+estimating function is a martingale difference sequence and the sandwich
+covariance collapses to
+
+```
+Sigma = (Delta / a) * M^{-1},
+  a = mu4 - mu2^2,  Delta = mu2 * a - mu3^2,  M = E[x_t x_t'],
+  Delta / a = mu2 * (1 - gamma3^2 / (gamma4 + 2)) = mu2 * g2
+```
+
+-- the same expression already used for AR models, with `X` replaced by
+the exact score regressors. `vcov()` and `confint()` therefore now work
+for non-seasonal `ma` / `arma` / `arima` fits produced with
+`ma_solver = "recursive"`; no numerical Jacobian and no HAC correction
+are involved. Agreement with an empirical numerical sandwich is within
+5%.
+
+For linearised fits `vcov()` and `confint()` still refuse -- the frozen
+CSS design is not the derivative of the criterion, so the formula does
+not apply there -- and direct users to `ts_pmm2_inference()`.
+
+#### Known limitation: intercept standard errors
+
+Neyman orthogonality with respect to the plug-in moments holds if and
+only if `mu3 * E[x_t] = 0`. Every **slope** regressor has `E[x_t] = 0`,
+so estimating `mu2`, `mu3`, `mu4` from residuals does not affect the
+limiting distribution of the AR/MA coefficients. The **intercept**
+regressor has `E[x_t] = 1`, so under skewed innovations (`mu3 != 0`)
+estimating `mu2` contributes at first order and the intercept's standard
+error is understated. This affects the linearised branch as well and is
+not new in 0.5.0, but it is now documented; `vcov()` covers the slope
+parameters only and warns when an intercept was estimated under visible
+skewness.
+
+#### Other
+
+- New S4 slot `TS2fit@ma_solver` records which treatment produced the
+  fit. Objects created before 0.5.0 and every seasonal fit default to
+  `"linearized"` via the class prototype.
+- New internal functions: `arma_recursion()`, `pmm2_recursive_score()`,
+  `pmm2_recursive_solve()`, `pmm2_recursive_design()`,
+  `arma_admissible()`, `ma_pmm2_fit_recursive()`.
+- Note for anyone comparing branches: on ARMA/ARIMA fits with `d = 0`
+  and `include.mean = TRUE`, the linearised branch reports the fitted
+  offset alone as `@intercept` while the recursive branch reports the
+  full mean (CSS anchor plus correction). The recursive convention is
+  the correct one.
+- 365 new assertions in `tests/testthat/test-pmm2-recursive-ma.R`,
+  including an exact-identity check against CSS under symmetric
+  innovations and a regression test freezing the `1 - theta^2`
+  behaviour of the linearised branch.
+
 ## Version 0.4.0 (2026-05-28)
 
 ### Major: revised class hierarchy and unified user interface
@@ -250,7 +385,7 @@ arima_pmm2(y, order = c(1,0,1), pmm2_variant = "unified_global")  # Default
   - `estpmm_style_ma()` - PMM2 estimator for pure MA(q) models using CSS residuals as fixed regressors
   - `estpmm_style_sma()` - PMM2 estimator for pure SMA(Q) models
   - **`estpmm_style_ma_sma()` - PMM2 estimator for mixed MA+SMA models** ⭐ NEW
-  - Full support for MA(q)+SMA(Q) combinations in `sarima_pmm2()` with `ma_method="pmm2"`
+  - Full support for MA(q)+SMA(Q) combinations in `sarima_pmm2()` with `ma_solver="pmm2"`
   - Expected 20-45% MSE reduction for MA/SMA parameters under asymmetric innovation distributions
   - Implemented in `R/pmm2_ma_estimator.R` module with complete helper functions
   - Comprehensive unit tests (35 total) in `tests/testthat/test-ma-pmm2.R`
@@ -344,7 +479,7 @@ arima_pmm2(y, order = c(1,0,1), pmm2_variant = "unified_global")  # Default
 - `pmm2_inference()` - Bootstrap inference for linear models
 - `ts_pmm2_inference()` - Bootstrap inference for time series models
 - Statistical utilities: `pmm_skewness()`, `pmm_kurtosis()`, `compute_moments()`
-- Comparison functions: `compare_with_ols()`, `compare_ts_methods()`, `compare_ar_methods()`, `compare_ma_methods()`, `compare_arma_methods()`, `compare_arima_methods()`
+- Comparison functions: `compare_with_ols()`, `compare_ts_methods()`, `compare_ar_methods()`, `compare_ma_solvers()`, `compare_arma_solvers()`, `compare_arima_solvers()`
 
 **S4 Classes:**
 - `PMM2fit` - Results container for linear regression models

@@ -2,7 +2,7 @@
 % Please edit documentation in R/pmm2_ts_methods.R
 \name{vcov,TS2fit-method}
 \alias{vcov,TS2fit-method}
-\title{Variance-covariance matrix for TS2fit AR models}
+\title{Variance-covariance matrix for TS2fit models}
 \usage{
 \S4method{vcov}{TS2fit}(object, ...)
 }
@@ -12,11 +12,40 @@
 \item{...}{Additional arguments (not used)}
 }
 \value{
-Numeric covariance matrix (AR models only)
+Numeric covariance matrix of the slope coefficients
 }
 \description{
 For AR models, returns \eqn{\sigma^2 g_2 (X^\top X)^{-1}} where X is the
-lagged design matrix. For MA/ARMA/ARIMA models, asymptotic vcov requires
-the full Fisher information matrix; use \code{\link{ts_pmm2_inference}} for
-bootstrap-based standard errors instead.
+lagged design matrix.
 }
+\details{
+For non-seasonal MA/ARMA/ARIMA models fitted with
+\code{ma_solver = "recursive"} the same expression applies with X replaced by
+the exact score regressors
+\eqn{x_t = -\partial \varepsilon_t / \partial \beta}, rebuilt by
+\code{pmm2_recursive_design()}. This is the closed-form sandwich
+\eqn{\Sigma = (\Delta / a)\,\mathbf{M}^{-1}} with
+\eqn{a = \mu_4 - \mu_2^2}, \eqn{\Delta = \mu_2 a - \mu_3^2} and
+\eqn{\mathbf{M} = E[x_t x_t^\top]}: the estimating function is a martingale
+difference sequence at the true parameter, so no long-run (HAC) correction is
+required and no numerical Jacobian is needed. Note
+\eqn{\Delta / a = \mu_2 g_2}, i.e. the AR and MA branches share one formula.
+
+For fits produced with the (default) \code{ma_solver = "linearized"} the
+frozen CSS design matrix is not the derivative of the criterion, the sandwich
+above does not apply, and \code{vcov()} still refuses; use
+\code{\link{ts_pmm2_inference}} for bootstrap standard errors.
+}
+\section{Known limitation (intercept)}{
+
+Neyman orthogonality with respect to the plug-in moments holds if and only if
+\eqn{\mu_3 E[x_t] = 0}. All slope regressors have \eqn{E[x_t] = 0}, so
+estimating \eqn{\hat\mu_2, \hat\mu_3, \hat\mu_4} does not affect the limiting
+distribution of the AR/MA coefficients. The intercept regressor has
+\eqn{E[x_t] = 1}, so under skewed innovations (\eqn{\mu_3 \ne 0}) estimating
+\eqn{\hat\mu_2} contributes at first order to the intercept and its reported
+standard error is too small. This affects the linearised branch as well.
+\code{vcov()} therefore covers the slope parameters only and warns when an
+intercept was estimated under visible skewness.
+}
+

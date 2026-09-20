@@ -1,8 +1,8 @@
 Package: EstemPMM
 Type: Package
 Title: Polynomial Maximization Method for Non-Gaussian Regression
-Version: 0.4.0
-Date: 2026-05-28
+Version: 0.5.0
+Date: 2026-09-19
 Authors@R: 
     person("Serhii", "Zabolotnii",
            email = "zabolotniua@gmail.com",
@@ -37,15 +37,15 @@ Collate: 'data.R' 'optimized_direct_pmm2.R' 'pmm_base_classes.R'
         'pmm2_classes.R' 'pmm2_common.R' 'pmm2_inference.R'
         'pmm2_ma_estimator.R' 'pmm2_main.R' 'pmm2_monte_carlo.R'
         'pmm2_package.R' 'pmm2_ts_design.R' 'pmm2_ts_main.R'
-        'pmm2_ts_methods.R' 'pmm2_unified.R' 'pmm2_utils.R'
-        'pmm3_classes.R' 'pmm3_dispatch.R' 'pmm3_main.R'
+        'pmm2_ts_methods.R' 'pmm2_ts_recursive.R' 'pmm2_unified.R'
+        'pmm2_utils.R' 'pmm3_classes.R' 'pmm3_dispatch.R' 'pmm3_main.R'
         'pmm3_solver.R' 'pmm3_ts_classes.R' 'pmm3_ts_main.R'
         'pmm3_ts_methods.R' 'pmm3_utils.R' 'pmm_show_methods.R'
         'pmm_unified_api.R' 'sarimax_wrapper.R'
 NeedsCompilation: no
-Packaged: 2026-05-29 07:00:48 UTC; serhiizabolotnii
+Packaged: 2026-09-19 14:50:38 UTC; docua
 Author: Serhii Zabolotnii [aut, cre] (ORCID:
     <https://orcid.org/0000-0003-0242-2234>)
 Maintainer: Serhii Zabolotnii <zabolotniua@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-05-29 10:00:15 UTC
+Date/Publication: 2026-09-20 02:20:02 UTC

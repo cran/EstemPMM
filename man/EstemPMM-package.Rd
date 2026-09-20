@@ -96,5 +96,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Serhii Zabolotnii \email{zabolotniua@gmail.com} (\href{https://orcid.org/0000-0003-0242-2234}{ORCID})
 
+Authors:
+\itemize{
+  \item Serhii Zabolotnii \email{zabolotniua@gmail.com} (\href{https://orcid.org/0000-0003-0242-2234}{ORCID})
+}
+
 }
 \keyword{internal}
